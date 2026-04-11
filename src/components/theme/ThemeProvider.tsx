@@ -20,14 +20,17 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
+  // Lazy initializer — reads localStorage once on mount, no effect needed
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "dark";
+    return (localStorage.getItem("rfp-theme") as Theme) ?? "dark";
+  });
   const rippleRef = useRef<HTMLDivElement | null>(null);
 
+  // Apply the initial theme class to <html> on mount
   useEffect(() => {
-    const stored = localStorage.getItem("rfp-theme") as Theme | null;
-    const resolved = stored ?? "dark";
-    setTheme(resolved);
-    applyTheme(resolved);
+    applyTheme(theme);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggle = (originEl?: HTMLElement) => {
