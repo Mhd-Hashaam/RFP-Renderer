@@ -12,7 +12,7 @@ type EditableTextProps = {
 
 /**
  * Minimal contentEditable: commits on blur.
- * Shows a pencil icon on hover to signal editability.
+ * Pencil icon on hover — clicking it focuses the field and places cursor at end.
  */
 export function EditableText({ value, onCommit, className }: EditableTextProps) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -26,6 +26,19 @@ export function EditableText({ value, onCommit, className }: EditableTextProps) 
       el.textContent = value;
     }
   }, [value]);
+
+  const focusAtEnd = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.focus();
+    // Place cursor at end of content
+    const range = document.createRange();
+    const sel = window.getSelection();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  };
 
   return (
     <span className="group/edit relative inline-flex w-full items-start gap-1">
@@ -49,12 +62,21 @@ export function EditableText({ value, onCommit, className }: EditableTextProps) 
           if (next !== value.trim()) onCommit(next);
         }}
       />
-      {/* Edit hint icon — visible on hover, hidden when focused */}
+      {/* Pencil icon — click to enter edit mode */}
       {!focused && (
-        <Pencil
-          className="mt-0.5 size-3 shrink-0 text-muted-foreground/0 transition-opacity duration-150 group-hover/edit:text-muted-foreground/50"
-          aria-hidden
-        />
+        <button
+          type="button"
+          aria-label="Edit"
+          onClick={focusAtEnd}
+          className={cn(
+            "mt-0.5 shrink-0 cursor-pointer rounded-sm p-0.5",
+            "text-muted-foreground/0 transition-all duration-150",
+            "group-hover/edit:text-muted-foreground/50",
+            "hover:!text-muted-foreground hover:bg-muted/50",
+          )}
+        >
+          <Pencil className="size-3" aria-hidden />
+        </button>
       )}
     </span>
   );
