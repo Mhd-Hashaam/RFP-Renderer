@@ -90,7 +90,7 @@ function animateTransition(
   // Color of the incoming theme
   const rippleColor =
     nextTheme === "light"
-      ? "rgb(245, 243, 238)"  // warm parchment
+      ? "rgb(232, 230, 224)"  // warm sage-gray
       : "rgb(24, 24, 27)";    // dark zinc
 
   gsap.set(ripple, {

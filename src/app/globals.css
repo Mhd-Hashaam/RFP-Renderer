@@ -50,39 +50,39 @@
 }
 
 :root {
-  /* Warm parchment light theme — easy on the eyes, no harsh white */
-  --background: rgb(245, 243, 238);
+  /* Warm sage-gray light theme — low contrast, easy on the eyes */
+  --background: rgb(232, 230, 224);
   --foreground: rgb(28, 25, 23);
-  --card: rgb(250, 248, 244);
+  --card: rgb(238, 236, 230);
   --card-foreground: rgb(28, 25, 23);
-  --popover: rgb(250, 248, 244);
+  --popover: rgb(238, 236, 230);
   --popover-foreground: rgb(28, 25, 23);
   --primary: rgb(41, 37, 36);
-  --primary-foreground: rgb(250, 248, 244);
-  --secondary: rgb(231, 229, 228);
+  --primary-foreground: rgb(238, 236, 230);
+  --secondary: rgb(220, 218, 212);
   --secondary-foreground: rgb(41, 37, 36);
-  --muted: rgb(231, 229, 228);
-  --muted-foreground: rgb(120, 113, 108);
-  --accent: rgb(231, 229, 228);
+  --muted: rgb(220, 218, 212);
+  --muted-foreground: rgb(110, 105, 100);
+  --accent: rgb(220, 218, 212);
   --accent-foreground: rgb(41, 37, 36);
-  --destructive: rgb(220, 38, 38);
-  --border: rgb(214, 211, 209);
-  --input: rgb(214, 211, 209);
-  --ring: rgb(168, 162, 158);
-  --chart-1: rgb(214, 211, 209);
-  --chart-2: rgb(120, 113, 108);
+  --destructive: rgb(185, 28, 28);
+  --border: rgb(205, 202, 196);
+  --input: rgb(205, 202, 196);
+  --ring: rgb(160, 155, 150);
+  --chart-1: rgb(205, 202, 196);
+  --chart-2: rgb(110, 105, 100);
   --chart-3: rgb(87, 83, 78);
   --chart-4: rgb(68, 64, 60);
   --chart-5: rgb(41, 37, 36);
   --radius: 0.625rem;
-  --sidebar: rgb(240, 238, 233);
+  --sidebar: rgb(225, 223, 217);
   --sidebar-foreground: rgb(28, 25, 23);
   --sidebar-primary: rgb(41, 37, 36);
-  --sidebar-primary-foreground: rgb(250, 248, 244);
-  --sidebar-accent: rgb(231, 229, 228);
+  --sidebar-primary-foreground: rgb(238, 236, 230);
+  --sidebar-accent: rgb(220, 218, 212);
   --sidebar-accent-foreground: rgb(41, 37, 36);
-  --sidebar-border: rgb(214, 211, 209);
-  --sidebar-ring: rgb(168, 162, 158);
+  --sidebar-border: rgb(205, 202, 196);
+  --sidebar-ring: rgb(160, 155, 150);
 }
 
 .dark {

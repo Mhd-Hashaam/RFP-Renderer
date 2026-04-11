@@ -43,7 +43,7 @@ export function ThemeToggle() {
           "absolute size-6 rounded-full shadow-md transition-all duration-300 ease-in-out",
           isDark
             ? "left-[calc(100%-1.75rem)] bg-zinc-700 ring-1 ring-white/10"
-            : "left-1 bg-stone-50 ring-1 ring-stone-300",
+            : "left-1 bg-stone-200 ring-1 ring-stone-400",
         )}
       />
     </button>
