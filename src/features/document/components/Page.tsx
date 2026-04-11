@@ -36,6 +36,7 @@ export function Page({
 
       {/* Columns grid */}
       <div
+        data-page-grid
         className={cn(
           "grid gap-px bg-border/20",
           columnCount === 1 && "grid-cols-1",

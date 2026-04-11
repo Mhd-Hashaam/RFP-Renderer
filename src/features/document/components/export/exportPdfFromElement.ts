@@ -2,6 +2,19 @@ import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 
 /**
+ * Temporarily removes minHeight from page grid elements so the PDF capture
+ * doesn't include empty whitespace at the bottom of the last page.
+ */
+function stripMinHeights(root: HTMLElement): () => void {
+  const els = Array.from(
+    root.querySelectorAll<HTMLElement>("[data-page-grid]"),
+  );
+  const originals = els.map((el) => el.style.minHeight);
+  els.forEach((el) => (el.style.minHeight = "0px"));
+  return () => els.forEach((el, i) => (el.style.minHeight = originals[i]));
+}
+
+/**
  * Rasterizes the rendered DOM using html-to-image (supports oklch/lab/modern CSS)
  * then stitches pages into a jsPDF document.
  */
@@ -12,14 +25,20 @@ export async function exportPdfFromElement(
   const isDark = document.documentElement.classList.contains("dark");
   const bgColor = isDark ? "#18181b" : "#ffffff";
 
-  const dataUrl = await toPng(element, {
-    pixelRatio: 2,
-    backgroundColor: bgColor,
-    // Ensure fonts are embedded
-    skipFonts: false,
-  });
+  // Strip min-heights so the last page doesn't have a blank tail
+  const restoreMinHeights = stripMinHeights(element);
 
-  // Create an Image to get natural dimensions
+  let dataUrl: string;
+  try {
+    dataUrl = await toPng(element, {
+      pixelRatio: 2,
+      backgroundColor: bgColor,
+      skipFonts: false,
+    });
+  } finally {
+    restoreMinHeights();
+  }
+
   const img = new Image();
   await new Promise<void>((resolve, reject) => {
     img.onload = () => resolve();
