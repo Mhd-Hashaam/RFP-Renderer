@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+    // Allow unoptimized local images in /public/Assets
+    localPatterns: [
+      {
+        pathname: "/Assets/**",
+      },
+    ],
   },
 };
 

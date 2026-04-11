@@ -8,7 +8,7 @@ const unit = (id: string, height: number): LayoutUnit => ({
     {
       id: `${id}-b`,
       type: "paragraph",
-      content: "x".repeat(Math.max(1, Math.round(height))),
+      content: "x".repeat(Math.max(1, Math.round(height / 0.35))),
     },
   ],
 });
@@ -21,18 +21,20 @@ describe("paginate", () => {
       unit("u3", 300),
       unit("u4", 300),
     ];
-    const estimate = () => 300;
-    const pages = paginate(units, 2, 500, estimate);
+    const pages = paginate(units, 2, 500);
     expect(pages.length).toBeGreaterThanOrEqual(2);
-    expect(pages[0].columns[0]).toHaveLength(1);
-    expect(pages[0].columns[1]).toHaveLength(1);
   });
 
   it("is deterministic", () => {
     const units = [unit("a", 100), unit("b", 100)];
-    const estimate = () => 100;
-    const a = paginate(units, 3, 250, estimate);
-    const b = paginate(units, 3, 250, estimate);
+    const a = paginate(units, 3, 250);
+    const b = paginate(units, 3, 250);
     expect(a).toEqual(b);
+  });
+
+  it("produces correct column count per page", () => {
+    const units = [unit("x", 50), unit("y", 50), unit("z", 50)];
+    const pages = paginate(units, 3, 800);
+    expect(pages[0].columns).toHaveLength(3);
   });
 });

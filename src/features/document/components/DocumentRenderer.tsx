@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { buildLayoutUnits } from "@/features/document/layout/buildLayoutUnits";
-import { estimateLayoutUnitHeightPx } from "@/features/document/layout/estimateHeight";
 import { paginate } from "@/features/document/layout/paginate";
 import { PAGE_CONTENT_HEIGHT_PX } from "@/features/document/model/constants";
 import type { Block } from "@/features/document/model/types";
@@ -25,9 +24,7 @@ export function DocumentRenderer({
 }: Props) {
   const pages = useMemo(() => {
     const units = buildLayoutUnits(blocks);
-    return paginate(units, columnCount, PAGE_CONTENT_HEIGHT_PX, (u) =>
-      estimateLayoutUnitHeightPx(u),
-    );
+    return paginate(units, columnCount, PAGE_CONTENT_HEIGHT_PX);
   }, [blocks, columnCount]);
 
   return (

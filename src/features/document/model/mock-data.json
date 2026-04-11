@@ -1,68 +1,207 @@
 [
+  { "id": "1", "type": "heading", "level": 1, "content": "Project Overview" },
   {
-    "type": "heading",
-    "level": 1,
-    "content": "Project Overview"
-  },
-  {
+    "id": "2",
     "type": "paragraph",
-    "content": "This project involves the design and development of a modern enterprise platform with emphasis on scalability, security, and operational excellence. The following sections outline scope, phases, and deliverables in a format suitable for stakeholder review."
+    "content": "This proposal outlines the design and development of a mid-rise commercial building inspired by traditional Gothic architecture. The project aims to deliver a visually iconic structure that merges historical aesthetics with modern engineering, creating a premium destination for offices, retail, and public engagement."
   },
   {
+    "id": "3",
+    "type": "image",
+    "src": "/Assets/Main.webp",
+    "alt": "Gothic exterior",
+    "caption": "Fig 1. Primary facade with vertical emphasis and pointed arches"
+  },
+
+  { "id": "4", "type": "heading", "level": 2, "content": "Design Philosophy" },
+  {
+    "id": "5",
+    "type": "paragraph",
+    "content": "The architectural vision draws from classical Gothic principles such as verticality, light expression, and ornamental complexity. These elements are translated into a contemporary form using modern materials and construction techniques."
+  },
+  {
+    "id": "6",
     "type": "list",
     "style": "unordered",
     "items": [
-      "Cloud-native architecture",
-      "Microservices-based backend",
-      "Responsive dashboard UI"
+      "Strong vertical lines and spires",
+      "Pointed arches and ribbed vaults",
+      "Decorative stone facades",
+      "Natural light through stained glass",
+      "Blending heritage with modern engineering"
     ]
   },
   {
+    "id": "7",
     "type": "image",
-    "src": "https://picsum.photos/seed/rfp-arch/640/360",
-    "alt": "System Architecture Diagram",
-    "caption": "Fig 1. High-level architecture overview"
+    "src": "/Assets/Interior and ceiling.webp",
+    "alt": "Interior hall",
+    "caption": "Fig 2. Grand interior hall with vaulted ceiling"
   },
   {
-    "type": "heading",
-    "level": 2,
-    "content": "Phase 1: Discovery & Planning"
+    "id": "8",
+    "type": "image",
+    "src": "/Assets/Sketch.webp",
+    "alt": "Concept sketch",
+    "caption": "Fig 3. Early-stage conceptual visualization"
   },
+
+  { "id": "9", "type": "heading", "level": 2, "content": "Project Scope" },
   {
+    "id": "10",
     "type": "paragraph",
-    "content": "During the initial phase, the team will conduct stakeholder interviews, document current-state workflows, and produce a prioritized backlog with acceptance criteria. Workshops will align terminology across business and engineering teams."
+    "content": "The scope covers architectural design, structural engineering, facade development, and integration of building systems. The building will accommodate mixed-use functionality across multiple floors."
   },
   {
-    "type": "heading",
-    "level": 2,
-    "content": "Phase 2: Build & Integration"
-  },
-  {
+    "id": "11",
     "type": "list",
     "style": "ordered",
     "items": [
-      "Implement core services and APIs",
-      "Integrate identity and access management",
-      "Establish CI/CD and observability baselines"
+      "Concept design and feasibility",
+      "Detailed architecture and modeling",
+      "Structural and MEP systems",
+      "Facade detailing and ornamentation",
+      "Interior design and layout planning",
+      "Final construction documentation"
     ]
   },
+
+  { "id": "12", "type": "heading", "level": 2, "content": "Spatial Layout & Zoning" },
   {
-    "type": "group",
-    "children": [
-      {
-        "type": "heading",
-        "level": 3,
-        "content": "Nested deliverables"
-      },
-      {
-        "type": "paragraph",
-        "content": "Nested groups demonstrate recursive rendering while still participating in heading/body pairing at the flat list level when appropriate."
-      }
-    ]
+    "id": "13",
+    "type": "paragraph",
+    "content": "The building layout is organized to support commercial, public, and executive functions with a clear vertical zoning strategy."
   },
   {
-    "type": "heading",
-    "level": 2,
-    "content": "Orphan heading edge (no following body)"
+    "id": "14",
+    "type": "image",
+    "src": "/Assets/Sketch 2.webp",
+    "alt": "Floor plan sketch",
+    "caption": "Fig 4. Zoning and spatial distribution"
+  },
+  {
+    "id": "15",
+    "type": "list",
+    "style": "unordered",
+    "items": [
+      "Ground floor retail and entrances",
+      "Public exhibition mezzanine",
+      "Flexible office floors",
+      "Executive suites at top levels",
+      "Rooftop terrace and events"
+    ]
+  },
+
+  { "id": "16", "type": "heading", "level": 2, "content": "Materials & Detailing" },
+  {
+    "id": "17",
+    "type": "paragraph",
+    "content": "Material selection emphasizes durability and authenticity while adapting Gothic elements into modern construction methods."
+  },
+  {
+    "id": "18",
+    "type": "image",
+    "src": "/Assets/Facade Details.webp",
+    "alt": "Stone detail",
+    "caption": "Fig 5. Ornamental stone detailing"
+  },
+  {
+    "id": "19",
+    "type": "list",
+    "style": "unordered",
+    "items": [
+      "Stone cladding facade",
+      "Steel structural system",
+      "Glass integration for lighting",
+      "Precast decorative elements",
+      "Composite sustainable materials"
+    ]
+  },
+
+  { "id": "20", "type": "heading", "level": 2, "content": "Interior & Commercial Spaces" },
+  {
+    "id": "21",
+    "type": "paragraph",
+    "content": "Interior environments are designed to provide modern functionality while preserving the grandeur of Gothic spatial aesthetics."
+  },
+  {
+    "id": "22",
+    "type": "image",
+    "src": "/Assets/Shops.webp",
+    "alt": "Office interior",
+    "caption": "Fig 6. Office space integrated within classical architecture"
+  },
+
+  { "id": "23", "type": "heading", "level": 2, "content": "Sustainability & Environment" },
+  {
+    "id": "24",
+    "type": "paragraph",
+    "content": "Sustainability is integrated into the design through energy efficiency, material selection, and environmental planning."
+  },
+  {
+    "id": "25",
+    "type": "image",
+    "src": "/Assets/Green.webp",
+    "alt": "Environment",
+    "caption": "Fig 7. Building integrated with surrounding environment"
+  },
+  {
+    "id": "26",
+    "type": "list",
+    "style": "unordered",
+    "items": [
+      "Natural lighting optimization",
+      "Energy-efficient HVAC systems",
+      "Rainwater harvesting",
+      "Green roof systems",
+      "Locally sourced materials"
+    ]
+  },
+
+  { "id": "27", "type": "heading", "level": 2, "content": "Lighting & Night Identity" },
+  {
+    "id": "28",
+    "type": "paragraph",
+    "content": "Lighting design enhances the dramatic expression of Gothic architecture, particularly during nighttime."
+  },
+  {
+    "id": "29",
+    "type": "image",
+    "src": "/Assets/Night View1.webp",
+    "alt": "Night view",
+    "caption": "Fig 8. Night illumination highlights vertical structure"
+  },
+
+  { "id": "30", "type": "heading", "level": 2, "content": "Construction Phases" },
+  {
+    "id": "31",
+    "type": "paragraph",
+    "content": "The project is structured into multiple phases to ensure controlled and efficient execution."
+  },
+  {
+    "id": "32",
+    "type": "list",
+    "style": "ordered",
+    "items": [
+      "Discovery and feasibility",
+      "Concept design",
+      "Detailed engineering",
+      "Construction",
+      "Inspection and handover"
+    ]
+  },
+
+  { "id": "33", "type": "heading", "level": 2, "content": "Final Vision" },
+  {
+    "id": "34",
+    "type": "paragraph",
+    "content": "The completed structure will stand as a modern commercial landmark rooted in timeless Gothic design principles, offering both functional excellence and architectural distinction."
+  },
+  {
+    "id": "35",
+    "type": "image",
+    "src": "/Assets/Facade and Night View.webp",
+    "alt": "Final exterior",
+    "caption": "Fig 9. Final envisioned structure"
   }
 ]

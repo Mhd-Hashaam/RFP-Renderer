@@ -1,25 +1,27 @@
-import type { Block } from "../model/types";
+import type { Block, LayoutUnit } from "../model/types";
 
 /**
- * Heuristic heights for pagination. Pure and deterministic for a given block tree.
+ * Type-aware height estimation. Pure and deterministic.
+ * Tuned for the Gothic architecture RFP dataset — images are heavy,
+ * paragraphs scale with content length, lists scale with item count.
  */
 export function estimateBlockHeightPx(block: Block): number {
   switch (block.type) {
-    case "heading": {
-      const base = 36 + block.level * 8;
-      return base + Math.min(120, block.content.length * 0.35);
-    }
+    case "heading":
+      return block.level === 1 ? 70 : 50;
+
     case "paragraph":
-      return Math.max(
-        52,
-        Math.min(520, 40 + block.content.length * 0.42),
-      );
-    case "list": {
-      const perItem = 30;
-      return 28 + block.items.length * perItem;
-    }
+      // 40px base + 0.35px per char, capped at 200px
+      return Math.min(200, 40 + block.content.length * 0.35);
+
+    case "list":
+      // 30px base + 26px per item
+      return 30 + block.items.length * 26;
+
     case "image":
+      // Fixed strong weight — images are layout anchors
       return 240;
+
     case "group":
       return (
         16 +
@@ -28,6 +30,7 @@ export function estimateBlockHeightPx(block: Block): number {
           0,
         )
       );
+
     default: {
       const _never: never = block;
       return _never;
@@ -35,8 +38,11 @@ export function estimateBlockHeightPx(block: Block): number {
   }
 }
 
-export function estimateLayoutUnitHeightPx(unit: {
-  blocks: Block[];
-}): number {
+export function estimateLayoutUnitHeightPx(unit: LayoutUnit): number {
   return unit.blocks.reduce((sum, b) => sum + estimateBlockHeightPx(b), 0);
+}
+
+/** Returns true if a layout unit contains an image block */
+export function unitHasImage(unit: LayoutUnit): boolean {
+  return unit.blocks.some((b) => b.type === "image");
 }
