@@ -59,9 +59,9 @@ export function DocumentApp({ initialBlocks }: Props) {
   };
 
   return (
-    <div className="bg-background min-h-full flex-1">
+    <div className="min-h-full flex-1">
       {/* Top toolbar */}
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-md">
+      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-4">
           {/* Brand */}
           <div className="flex items-center gap-2.5">
@@ -104,7 +104,7 @@ export function DocumentApp({ initialBlocks }: Props) {
 
         {/* Sidebar */}
         <aside className="lg:sticky lg:top-20 lg:w-72 lg:shrink-0">
-          <Card className="border-border/60 shadow-none">
+          <Card className="border-border/60 bg-card/70 shadow-none backdrop-blur-md">
             <CardHeader className="pb-2 pt-4 px-4">
               <CardTitle className="font-heading text-sm font-semibold">
                 Document Outline

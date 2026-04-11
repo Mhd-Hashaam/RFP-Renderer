@@ -134,6 +134,15 @@
     font-family: var(--font-playfair), Georgia, serif;
   }
 
+  /* Dark theme background image */
+  .dark body {
+    background-image: url('/Assets/Background.webp');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+
   /* Smooth theme transitions */
   *, *::before, *::after {
     transition-property: background-color, border-color, color;
