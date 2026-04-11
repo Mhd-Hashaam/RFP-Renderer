@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RFP Section Renderer
 
-## Getting Started
+A **dynamic RFP-style document renderer** built with **Next.js (App Router)**, **React**, **TypeScript**, **Tailwind CSS**, and **shadcn/ui**. It loads structured JSON, renders rich mixed content (headings, paragraphs, lists, images, nested groups), paginates into responsive multi-column “pages,” supports **inline editing**, **drag-and-drop reordering**, and **PDF export** (DOM capture).
 
-First, run the development server:
+**Submission repository**: `https://github.com/Mhd-Hashaam/RFP-Renderer`
+
+## Quick start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Other scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script        | Description                   |
+| ------------- | ----------------------------- |
+| `npm run dev` | Start the dev server          |
+| `npm run build` | Production build            |
+| `npm run start` | Start production server     |
+| `npm run lint` | ESLint                        |
+| `npm run typecheck` | `tsc --noEmit`            |
+| `npm run test` | Vitest (layout unit tests)    |
 
-## Learn More
+## What I built (one paragraph)
 
-To learn more about Next.js, take a look at the following resources:
+A schema-driven document viewer that normalizes JSON blocks, derives **layout units** to keep headings attached to their first body block, paginates those units into responsive columns with a fixed page content budget, and wires edits + reordering back to a single canonical Zustand `Block[]`. PDF export rasterizes the **rendered DOM** for WYSIWYG-ish parity with the on-screen layout.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Architecture (keywords)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Schema-driven UI** via `BlockRenderer`
+- **Layout units** (`buildLayoutUnits`) + **pure pagination** (`paginate`)
+- **Deterministic** layout functions (easy to test and debug)
+- **Canonical store** for order + edits; derived layout after every change
 
-## Deploy on Vercel
+Read more in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Trade-offs
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Estimated heights** instead of DOM measurement (faster/simpler; not pixel-perfect).
+- **Raster PDF** via `html2canvas` + `jspdf` (good visual parity; weaker text selection vs vector PDF).
+
+## Docs
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/CI.md](docs/CI.md)
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+- [docs/BROWSERS.md](docs/BROWSERS.md)
+- [docs/APPROACH.md](docs/APPROACH.md)
+- [docs/SUBMISSION_CHECKLIST.md](docs/SUBMISSION_CHECKLIST.md)
+
+## Tech stack versions
+
+Pinned in `package.json` after scaffolding (example: Next `16.x`, React `19.x`). Use `.nvmrc` for Node alignment in CI and Vercel.
+
+Note: the `shadcn` package is kept as a **devDependency** so Tailwind can resolve `@import "shadcn/tailwind.css"` from `globals.css` (required by the shadcn v4 + Tailwind v4 template).

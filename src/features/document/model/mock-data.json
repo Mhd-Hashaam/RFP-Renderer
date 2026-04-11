@@ -1,0 +1,68 @@
+[
+  {
+    "type": "heading",
+    "level": 1,
+    "content": "Project Overview"
+  },
+  {
+    "type": "paragraph",
+    "content": "This project involves the design and development of a modern enterprise platform with emphasis on scalability, security, and operational excellence. The following sections outline scope, phases, and deliverables in a format suitable for stakeholder review."
+  },
+  {
+    "type": "list",
+    "style": "unordered",
+    "items": [
+      "Cloud-native architecture",
+      "Microservices-based backend",
+      "Responsive dashboard UI"
+    ]
+  },
+  {
+    "type": "image",
+    "src": "https://picsum.photos/seed/rfp-arch/640/360",
+    "alt": "System Architecture Diagram",
+    "caption": "Fig 1. High-level architecture overview"
+  },
+  {
+    "type": "heading",
+    "level": 2,
+    "content": "Phase 1: Discovery & Planning"
+  },
+  {
+    "type": "paragraph",
+    "content": "During the initial phase, the team will conduct stakeholder interviews, document current-state workflows, and produce a prioritized backlog with acceptance criteria. Workshops will align terminology across business and engineering teams."
+  },
+  {
+    "type": "heading",
+    "level": 2,
+    "content": "Phase 2: Build & Integration"
+  },
+  {
+    "type": "list",
+    "style": "ordered",
+    "items": [
+      "Implement core services and APIs",
+      "Integrate identity and access management",
+      "Establish CI/CD and observability baselines"
+    ]
+  },
+  {
+    "type": "group",
+    "children": [
+      {
+        "type": "heading",
+        "level": 3,
+        "content": "Nested deliverables"
+      },
+      {
+        "type": "paragraph",
+        "content": "Nested groups demonstrate recursive rendering while still participating in heading/body pairing at the flat list level when appropriate."
+      }
+    ]
+  },
+  {
+    "type": "heading",
+    "level": 2,
+    "content": "Orphan heading edge (no following body)"
+  }
+]
