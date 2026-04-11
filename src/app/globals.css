@@ -50,39 +50,39 @@
 }
 
 :root {
-  /* Warm sage-gray light theme — low contrast, easy on the eyes */
-  --background: rgb(232, 230, 224);
-  --foreground: rgb(28, 25, 23);
-  --card: rgb(238, 236, 230);
-  --card-foreground: rgb(28, 25, 23);
-  --popover: rgb(238, 236, 230);
-  --popover-foreground: rgb(28, 25, 23);
-  --primary: rgb(41, 37, 36);
-  --primary-foreground: rgb(238, 236, 230);
-  --secondary: rgb(220, 218, 212);
-  --secondary-foreground: rgb(41, 37, 36);
-  --muted: rgb(220, 218, 212);
-  --muted-foreground: rgb(110, 105, 100);
-  --accent: rgb(220, 218, 212);
-  --accent-foreground: rgb(41, 37, 36);
+  /* Deep warm gray — Obsidian/iA Writer sepia-inspired, genuinely easy on eyes */
+  --background: rgb(210, 207, 199);
+  --foreground: rgb(22, 20, 18);
+  --card: rgb(218, 215, 207);
+  --card-foreground: rgb(22, 20, 18);
+  --popover: rgb(218, 215, 207);
+  --popover-foreground: rgb(22, 20, 18);
+  --primary: rgb(35, 31, 29);
+  --primary-foreground: rgb(218, 215, 207);
+  --secondary: rgb(198, 195, 187);
+  --secondary-foreground: rgb(35, 31, 29);
+  --muted: rgb(198, 195, 187);
+  --muted-foreground: rgb(100, 95, 90);
+  --accent: rgb(198, 195, 187);
+  --accent-foreground: rgb(35, 31, 29);
   --destructive: rgb(185, 28, 28);
-  --border: rgb(205, 202, 196);
-  --input: rgb(205, 202, 196);
-  --ring: rgb(160, 155, 150);
-  --chart-1: rgb(205, 202, 196);
-  --chart-2: rgb(110, 105, 100);
-  --chart-3: rgb(87, 83, 78);
-  --chart-4: rgb(68, 64, 60);
-  --chart-5: rgb(41, 37, 36);
+  --border: rgb(185, 182, 174);
+  --input: rgb(185, 182, 174);
+  --ring: rgb(145, 140, 133);
+  --chart-1: rgb(185, 182, 174);
+  --chart-2: rgb(100, 95, 90);
+  --chart-3: rgb(78, 74, 70);
+  --chart-4: rgb(58, 55, 52);
+  --chart-5: rgb(35, 31, 29);
   --radius: 0.625rem;
-  --sidebar: rgb(225, 223, 217);
-  --sidebar-foreground: rgb(28, 25, 23);
-  --sidebar-primary: rgb(41, 37, 36);
-  --sidebar-primary-foreground: rgb(238, 236, 230);
-  --sidebar-accent: rgb(220, 218, 212);
-  --sidebar-accent-foreground: rgb(41, 37, 36);
-  --sidebar-border: rgb(205, 202, 196);
-  --sidebar-ring: rgb(160, 155, 150);
+  --sidebar: rgb(202, 199, 191);
+  --sidebar-foreground: rgb(22, 20, 18);
+  --sidebar-primary: rgb(35, 31, 29);
+  --sidebar-primary-foreground: rgb(218, 215, 207);
+  --sidebar-accent: rgb(198, 195, 187);
+  --sidebar-accent-foreground: rgb(35, 31, 29);
+  --sidebar-border: rgb(185, 182, 174);
+  --sidebar-ring: rgb(145, 140, 133);
 }
 
 .dark {
