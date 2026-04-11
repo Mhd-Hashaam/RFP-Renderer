@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { DocumentRenderer } from "./DocumentRenderer";
 import { SortableOutline } from "./dnd/SortableOutline";
 import { exportPdfFromElement } from "./export/exportPdfFromElement";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 type Props = {
   initialBlocks: Block[];
@@ -89,6 +90,7 @@ export function DocumentApp({ initialBlocks }: Props) {
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <ThemeToggle />
               <Button
                 type="button"
                 onClick={handleExportPdf}
