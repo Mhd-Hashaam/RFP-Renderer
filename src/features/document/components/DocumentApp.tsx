@@ -89,7 +89,7 @@ export function DocumentApp({ initialBlocks }: Props) {
               size="sm"
               onClick={handleExportPdf}
               disabled={exporting || resolvedBlocks.length === 0}
-              className="cursor-pointer gap-1.5"
+              className="cursor-pointer gap-1.5 transition-all duration-150 hover:scale-[1.03] hover:shadow-md active:scale-[0.97]"
               title="Captures the rendered DOM for visual parity with the on-screen document."
             >
               <Download className="size-3.5" />
