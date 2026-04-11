@@ -134,13 +134,19 @@
     font-family: var(--font-playfair), Georgia, serif;
   }
 
-  /* Dark theme background image */
+  /* Dark theme background image — override bg-color to transparent so image shows */
   .dark body {
+    background-color: transparent;
     background-image: url('/Assets/Background.webp');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
+  }
+
+  /* Dark theme base color on html so there's no flash behind the image */
+  .dark html {
+    background-color: rgb(24, 24, 27);
   }
 
   /* Smooth theme transitions */
