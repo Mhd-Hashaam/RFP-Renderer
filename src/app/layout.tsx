@@ -40,7 +40,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+      <body className="h-full overflow-hidden" suppressHydrationWarning>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

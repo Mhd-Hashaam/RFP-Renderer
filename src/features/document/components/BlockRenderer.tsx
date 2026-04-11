@@ -12,6 +12,8 @@ type Props = {
   onUpdateHeading: (id: string, content: string) => void;
   onUpdateParagraph: (id: string, content: string) => void;
   onUpdateListItem: (id: string, index: number, value: string) => void;
+  /** Hint from parent layout unit — image paired with H1 gets hero treatment */
+  hero?: boolean;
 };
 
 export function BlockRenderer({
@@ -19,20 +21,17 @@ export function BlockRenderer({
   onUpdateHeading,
   onUpdateParagraph,
   onUpdateListItem,
+  hero = false,
 }: Props) {
   switch (block.type) {
     case "heading":
-      return (
-        <HeadingBlock block={block} onUpdateContent={onUpdateHeading} />
-      );
+      return <HeadingBlock block={block} onUpdateContent={onUpdateHeading} />;
     case "paragraph":
-      return (
-        <ParagraphBlock block={block} onUpdateContent={onUpdateParagraph} />
-      );
+      return <ParagraphBlock block={block} onUpdateContent={onUpdateParagraph} />;
     case "list":
       return <ListBlock block={block} onUpdateItem={onUpdateListItem} />;
     case "image":
-      return <ImageBlock block={block} />;
+      return <ImageBlock block={block} hero={hero} />;
     case "group":
       return (
         <GroupBlock

@@ -33,6 +33,7 @@ export function DocumentRenderer({
         <Page
           key={`page-${idx}`}
           pageIndex={idx}
+          totalPages={pages.length}
           columns={page.columns}
           columnCount={columnCount}
           onUpdateHeading={onUpdateHeading}

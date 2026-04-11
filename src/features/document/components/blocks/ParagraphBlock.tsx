@@ -10,7 +10,7 @@ type Props = {
 
 export function ParagraphBlock({ block, onUpdateContent }: Props) {
   return (
-    <div className="mt-2 text-sm leading-7 text-foreground/75">
+    <div className="mt-2 text-sm leading-7 text-foreground/70">
       <EditableText
         value={block.content}
         onCommit={(v) => onUpdateContent(block.id, v)}

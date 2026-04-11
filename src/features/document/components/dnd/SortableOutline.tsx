@@ -75,10 +75,11 @@ function SortableRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group/row bg-card flex items-center gap-2 rounded-lg border px-2 py-2 transition-shadow duration-150",
+        "group/row flex items-center gap-2 rounded-lg px-2 py-2 transition-all duration-150",
+        "border border-white/5 bg-white/5 backdrop-blur-sm",
         isDragging
-          ? "shadow-lg ring-1 ring-ring/30 opacity-80"
-          : "hover:shadow-sm hover:border-border/80",
+          ? "shadow-lg ring-1 ring-white/20 opacity-80 scale-[1.02]"
+          : "hover:bg-white/10 hover:border-white/10",
       )}
     >
       {/* Drag handle */}
@@ -102,7 +103,7 @@ function SortableRow({
         >
           {block.type}
         </span>
-        <div className="truncate text-xs font-medium text-foreground/80">
+        <div className="truncate text-xs font-medium text-white/70">
           {previewBlock(block)}
         </div>
       </div>
@@ -164,7 +165,7 @@ export function SortableOutline({ blocks, onReorder, onMove }: Props) {
         {blocks.map((block) => (
           <div
             key={block.id}
-            className="bg-card flex items-center gap-2 rounded-lg border px-2 py-2"
+            className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/5 px-2 py-2"
           >
             <div className="text-muted-foreground/40 p-1">
               <GripVertical className="size-3.5" />
@@ -178,7 +179,7 @@ export function SortableOutline({ blocks, onReorder, onMove }: Props) {
               >
                 {block.type}
               </span>
-              <div className="truncate text-xs font-medium text-foreground/80">
+              <div className="truncate text-xs font-medium text-white/70">
                 {previewBlock(block)}
               </div>
             </div>

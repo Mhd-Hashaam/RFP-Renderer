@@ -126,9 +126,12 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    height: 100%;
+    overflow: hidden;
   }
   html {
     @apply font-sans;
+    height: 100%;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-playfair), Georgia, serif;
