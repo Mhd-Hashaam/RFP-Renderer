@@ -10,11 +10,11 @@ type Props = {
 
 export function ParagraphBlock({ block, onUpdateContent }: Props) {
   return (
-    <div className="text-muted-foreground mt-2 text-sm leading-relaxed">
+    <div className="mt-2 text-sm leading-7 text-foreground/75">
       <EditableText
         value={block.content}
         onCommit={(v) => onUpdateContent(block.id, v)}
-        className="min-h-[1.25rem] w-full text-foreground/90"
+        className="w-full"
       />
     </div>
   );

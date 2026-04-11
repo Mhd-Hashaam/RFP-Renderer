@@ -16,7 +16,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import type { Block } from "@/features/document/model/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -27,9 +27,9 @@ function previewBlock(block: Block): string {
     case "heading":
       return block.content || "Heading";
     case "paragraph":
-      return block.content.slice(0, 72) || "Paragraph";
+      return block.content.slice(0, 60) || "Paragraph";
     case "list":
-      return `List (${block.items.length})`;
+      return `List (${block.items.length} items)`;
     case "image":
       return block.alt || "Image";
     case "group":
@@ -40,6 +40,14 @@ function previewBlock(block: Block): string {
     }
   }
 }
+
+const typeColor: Record<Block["type"], string> = {
+  heading: "bg-violet-500/15 text-violet-400",
+  paragraph: "bg-sky-500/15 text-sky-400",
+  list: "bg-emerald-500/15 text-emerald-400",
+  image: "bg-amber-500/15 text-amber-400",
+  group: "bg-rose-500/15 text-rose-400",
+};
 
 function SortableRow({
   block,
@@ -67,45 +75,59 @@ function SortableRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "bg-background flex items-center gap-2 rounded-md border px-2 py-1.5",
-        isDragging && "opacity-60 shadow-sm",
+        "group/row bg-card flex items-center gap-2 rounded-lg border px-2 py-2 transition-shadow duration-150",
+        isDragging
+          ? "shadow-lg ring-1 ring-ring/30 opacity-80"
+          : "hover:shadow-sm hover:border-border/80",
       )}
     >
+      {/* Drag handle */}
       <button
         type="button"
-        className="text-muted-foreground hover:text-foreground touch-manipulation rounded-sm p-1"
+        className="text-muted-foreground/40 hover:text-muted-foreground cursor-grab active:cursor-grabbing touch-manipulation rounded-sm p-1 transition-colors"
         aria-label={`Drag to reorder: ${previewBlock(block)}`}
         {...attributes}
         {...listeners}
       >
-        <GripVertical className="size-4" />
+        <GripVertical className="size-3.5" />
       </button>
+
+      {/* Content */}
       <div className="min-w-0 flex-1">
-        <div className="text-muted-foreground text-[10px] uppercase tracking-wide">
+        <span
+          className={cn(
+            "mb-0.5 inline-block rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest",
+            typeColor[block.type],
+          )}
+        >
           {block.type}
+        </span>
+        <div className="truncate text-xs font-medium text-foreground/80">
+          {previewBlock(block)}
         </div>
-        <div className="truncate text-sm">{previewBlock(block)}</div>
       </div>
+
+      {/* Mobile up/down */}
       <div className="flex shrink-0 flex-col gap-0.5 sm:hidden">
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="size-7"
+          className="size-6 cursor-pointer"
           aria-label="Move section up"
           onClick={() => onMove(block.id, "up")}
         >
-          <ChevronUp className="size-4" />
+          <ChevronUp className="size-3" />
         </Button>
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="size-7"
+          className="size-6 cursor-pointer"
           aria-label="Move section down"
           onClick={() => onMove(block.id, "down")}
         >
-          <ChevronDown className="size-4" />
+          <ChevronDown className="size-3" />
         </Button>
       </div>
     </div>
@@ -119,6 +141,10 @@ type Props = {
 };
 
 export function SortableOutline({ blocks, onReorder, onMove }: Props) {
+  // Mount guard — prevents @dnd-kit aria-describedby SSR/client mismatch
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const ids = useMemo(() => blocks.map((b) => b.id), [blocks]);
 
   const sensors = useSensors(
@@ -132,6 +158,36 @@ export function SortableOutline({ blocks, onReorder, onMove }: Props) {
     onReorder(String(active.id), String(over.id));
   };
 
+  if (!mounted) {
+    return (
+      <div className="space-y-2">
+        {blocks.map((block) => (
+          <div
+            key={block.id}
+            className="bg-card flex items-center gap-2 rounded-lg border px-2 py-2"
+          >
+            <div className="text-muted-foreground/40 p-1">
+              <GripVertical className="size-3.5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span
+                className={cn(
+                  "mb-0.5 inline-block rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest",
+                  typeColor[block.type],
+                )}
+              >
+                {block.type}
+              </span>
+              <div className="truncate text-xs font-medium text-foreground/80">
+                {previewBlock(block)}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -139,7 +195,7 @@ export function SortableOutline({ blocks, onReorder, onMove }: Props) {
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {blocks.map((block) => (
             <SortableRow key={block.id} block={block} onMove={onMove} />
           ))}

@@ -13,17 +13,17 @@ export function ListBlock({ block, onUpdateItem }: Props) {
   const ListTag = block.style === "ordered" ? "ol" : "ul";
   const listClass =
     block.style === "ordered"
-      ? "list-decimal pl-5 marker:text-muted-foreground"
-      : "list-disc pl-5 marker:text-muted-foreground";
+      ? "list-decimal pl-5 marker:text-muted-foreground/60"
+      : "list-disc pl-5 marker:text-muted-foreground/60";
 
   return (
-    <ListTag className={cn("mt-2 space-y-1 text-sm", listClass)}>
+    <ListTag className={cn("mt-2 space-y-1.5 text-sm leading-relaxed", listClass)}>
       {block.items.map((item, index) => (
-        <li key={`${block.id}-item-${index}`} className="leading-relaxed">
+        <li key={`${block.id}-item-${index}`} className="text-foreground/75">
           <EditableText
             value={item}
             onCommit={(v) => onUpdateItem(block.id, index, v)}
-            className="inline-block min-h-[1.25rem] w-full text-foreground/90"
+            className="inline-block min-h-[1.25rem] w-full"
           />
         </li>
       ))}

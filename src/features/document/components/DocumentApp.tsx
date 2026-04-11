@@ -8,15 +8,16 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { DocumentRenderer } from "./DocumentRenderer";
 import { SortableOutline } from "./dnd/SortableOutline";
 import { exportPdfFromElement } from "./export/exportPdfFromElement";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { Download, FileText, Columns3 } from "lucide-react";
 
 type Props = {
   initialBlocks: Block[];
@@ -58,18 +59,62 @@ export function DocumentApp({ initialBlocks }: Props) {
   };
 
   return (
-    <div className="bg-muted/40 min-h-full flex-1">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 lg:flex-row">
-        <aside className="lg:w-80 lg:shrink-0">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Outline</CardTitle>
-              <CardDescription className="text-xs">
-                Drag sections to reorder. Layout units recompute after each
-                change.
+    <div className="bg-background min-h-full flex-1">
+      {/* Top toolbar */}
+      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-4">
+          {/* Brand */}
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <FileText className="size-3.5" />
+            </div>
+            <span className="font-heading text-sm font-semibold tracking-tight">
+              RFP Renderer
+            </span>
+          </div>
+
+          {/* Meta */}
+          <div className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
+            <Columns3 className="size-3.5" />
+            <span>{columnCount} column{columnCount !== 1 ? "s" : ""}</span>
+            <span className="mx-1 opacity-30">·</span>
+            <span>{resolvedBlocks.length} blocks</span>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleExportPdf}
+              disabled={exporting || resolvedBlocks.length === 0}
+              className="cursor-pointer gap-1.5"
+              title="Captures the rendered DOM for visual parity with the on-screen document."
+            >
+              <Download className="size-3.5" />
+              {exporting ? "Exporting…" : "Export PDF"}
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Body */}
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 lg:flex-row lg:items-start">
+
+        {/* Sidebar */}
+        <aside className="lg:sticky lg:top-20 lg:w-72 lg:shrink-0">
+          <Card className="border-border/60 shadow-none">
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="font-heading text-sm font-semibold">
+                Document Outline
+              </CardTitle>
+              <CardDescription className="text-xs leading-relaxed">
+                Drag to reorder sections. Layout recomputes automatically.
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
+            <Separator className="mb-3 opacity-50" />
+            <CardContent className="px-3 pb-4 pt-0">
               <SortableOutline
                 blocks={resolvedBlocks}
                 onReorder={reorderBlocks}
@@ -79,32 +124,14 @@ export function DocumentApp({ initialBlocks }: Props) {
           </Card>
         </aside>
 
-        <main className="min-w-0 flex-1 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-lg font-semibold tracking-tight">
-                Project scope
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                Click text to edit inline. Columns: {columnCount}.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-              <Button
-                type="button"
-                onClick={handleExportPdf}
-                disabled={exporting || resolvedBlocks.length === 0}
-                title="Captures the rendered DOM for visual parity with the on-screen document."
-              >
-                {exporting ? "Exporting…" : "Export PDF"}
-              </Button>
-            </div>
+        {/* Document area */}
+        <main className="min-w-0 flex-1">
+          <div className="mb-1 flex items-center gap-2">
+            <p className="text-xs text-muted-foreground">
+              Click any text to edit inline
+            </p>
           </div>
-
-          <Separator />
-
-          <div ref={pdfRef} className="space-y-8 bg-muted/40 p-2 sm:p-4">
+          <div ref={pdfRef} className="space-y-6">
             <DocumentRenderer
               blocks={resolvedBlocks}
               columnCount={columnCount}

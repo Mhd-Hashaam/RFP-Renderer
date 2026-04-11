@@ -14,7 +14,7 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       className={cn(
-        "relative flex h-8 w-14 items-center rounded-full border p-1 transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "relative flex h-8 w-14 cursor-pointer items-center rounded-full border p-1 transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         isDark
           ? "border-white/10 bg-zinc-800"
           : "border-zinc-200 bg-zinc-100",
