@@ -5,6 +5,34 @@ const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
 
 /**
+ * Walks every element in the subtree and inlines computed rgb() values for
+ * color properties so html2canvas (which can't parse oklch/lab/color()) doesn't choke.
+ * getComputedStyle always returns rgb/rgba in Chromium even for oklch source values.
+ */
+function inlineComputedColors(root: HTMLElement): void {
+  const colorProps = [
+    "color",
+    "backgroundColor",
+    "borderTopColor",
+    "borderRightColor",
+    "borderBottomColor",
+    "borderLeftColor",
+    "outlineColor",
+  ] as const;
+
+  const all = [root, ...Array.from(root.querySelectorAll<HTMLElement>("*"))];
+  for (const el of all) {
+    const cs = window.getComputedStyle(el);
+    for (const prop of colorProps) {
+      const val = cs[prop as keyof CSSStyleDeclaration] as string;
+      if (val) {
+        (el.style as unknown as Record<string, string>)[prop] = val;
+      }
+    }
+  }
+}
+
+/**
  * Captures a single HTMLElement using html2canvas.
  * Scrolls the element into view first so the browser has fully painted it,
  * then captures at full scroll dimensions (not just the visible viewport).
@@ -27,6 +55,9 @@ async function captureElement(
     width: el.scrollWidth,
     windowWidth: el.scrollWidth,
     windowHeight: el.scrollHeight,
+    onclone: (_doc, clonedEl) => {
+      inlineComputedColors(clonedEl);
+    },
   });
 
   return {
