@@ -1,140 +1,117 @@
-import { toPng } from "html-to-image";
+import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
-const RENDER_WIDTH_PX = 1200;
 
 /**
- * Waits for all <img> elements inside a node to finish loading.
- * Uses a 5-second timeout per image so a broken image never hangs the export.
+ * Captures a single HTMLElement using html2canvas.
+ * Scrolls the element into view first so the browser has fully painted it,
+ * then captures at full scroll dimensions (not just the visible viewport).
  */
-async function waitForImages(root: HTMLElement): Promise<void> {
-  const images = Array.from(root.querySelectorAll<HTMLImageElement>("img"));
-  await Promise.all(
-    images.map(
-      (img) =>
-        new Promise<void>((resolve) => {
-          // Already loaded
-          if (img.complete && img.naturalWidth > 0) {
-            resolve();
-            return;
-          }
-          const timer = setTimeout(resolve, 5000); // 5s max per image
-          img.onload = () => { clearTimeout(timer); resolve(); };
-          img.onerror = () => { clearTimeout(timer); resolve(); };
-        }),
-    ),
-  );
+async function captureElement(
+  el: HTMLElement,
+  bgColor: string,
+): Promise<{ dataUrl: string; widthPx: number; heightPx: number }> {
+  el.scrollIntoView({ block: "nearest" });
+  // Two rAFs: first lets the DOM update, second lets the browser paint
+  await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+
+  const canvas = await html2canvas(el, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: bgColor,
+    logging: false,
+    height: el.scrollHeight,
+    width: el.scrollWidth,
+    windowWidth: el.scrollWidth,
+    windowHeight: el.scrollHeight,
+  });
+
+  return {
+    dataUrl: canvas.toDataURL("image/png"),
+    widthPx: canvas.width,
+    heightPx: canvas.height,
+  };
 }
 
 /**
- * Exports the document as a multi-page PDF using an off-screen clone.
+ * Exports the document as a multi-page PDF.
  *
- * The live DOM is never mutated — no layout shifts, no sidebar changes.
- * The clone is rendered at a fixed A4-proportional width and captured
- * after all images have loaded.
+ * Strategy: capture each page card (article[data-page-card]) individually
+ * using html2canvas on the live DOM. This avoids all overflow/clipping issues
+ * because each card is fully rendered in the document flow.
+ *
+ * - First PDF page is sized to the first card's content height (no blank space).
+ * - Each subsequent card gets its own PDF page sized to its content.
+ * - Cards taller than A4 are sliced into multiple A4 pages.
  */
 export async function exportPdfFromElement(
-  element: HTMLElement,
+  container: HTMLElement,
   fileName = "rfp-document.pdf",
 ): Promise<void> {
   const isDark = document.documentElement.classList.contains("dark");
   const bgColor = isDark ? "#0a0a0a" : "#d2cfc7";
 
-  // ── 1. Off-screen container ────────────────────────────────────────────
-  const offscreen = document.createElement("div");
-  offscreen.style.cssText = [
-    "position:fixed",
-    "top:0",
-    "left:-9999px",
-    `width:${RENDER_WIDTH_PX}px`,
-    `background:${bgColor}`,
-    "z-index:-1",
-    "pointer-events:none",
-    "overflow:visible",
-  ].join(";");
+  const pageCards = Array.from(
+    container.querySelectorAll<HTMLElement>("article[data-page-card]"),
+  );
 
-  // ── 2. Clone content ───────────────────────────────────────────────────
-  const clone = element.cloneNode(true) as HTMLElement;
-  clone.style.cssText = [
-    `width:${RENDER_WIDTH_PX}px`,
-    `max-width:${RENDER_WIDTH_PX}px`,
-    "overflow:visible",
-    "height:auto",
-    "padding:32px",
-    "box-sizing:border-box",
-  ].join(";");
+  const targets: HTMLElement[] = pageCards.length > 0 ? pageCards : [container];
 
-  offscreen.appendChild(clone);
-  document.body.appendChild(offscreen);
-
-  // ── 3. Wait for images already in the clone (do NOT reset src) ─────────
-  await waitForImages(clone);
-
-  // ── 4. Capture ─────────────────────────────────────────────────────────
-  let dataUrl: string;
-  let naturalWidth: number;
-  let naturalHeight: number;
-
-  try {
-    dataUrl = await toPng(offscreen, {
-      pixelRatio: 2,
-      backgroundColor: bgColor,
-      skipFonts: false,
-      width: RENDER_WIDTH_PX,
-    });
-
-    await new Promise<void>((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        naturalWidth = img.naturalWidth;
-        naturalHeight = img.naturalHeight;
-        resolve();
-      };
-      img.onerror = reject;
-      img.src = dataUrl;
-    });
-  } finally {
-    document.body.removeChild(offscreen);
+  // Capture all cards sequentially
+  const captures: Array<{ dataUrl: string; widthPx: number; heightPx: number }> = [];
+  for (const card of targets) {
+    captures.push(await captureElement(card, bgColor));
   }
 
-  // ── 5. Build PDF ───────────────────────────────────────────────────────
-  const imgWidthMm = A4_WIDTH_MM;
-  const imgHeightMm = (naturalHeight! / naturalWidth!) * imgWidthMm;
+  if (captures.length === 0) return;
 
-  if (imgHeightMm <= A4_HEIGHT_MM) {
-    const pdf = new jsPDF({
-      orientation: "p",
-      unit: "mm",
-      format: [A4_WIDTH_MM, imgHeightMm],
-    });
-    pdf.addImage(dataUrl, "PNG", 0, 0, imgWidthMm, imgHeightMm);
-    pdf.save(fileName);
-    return;
-  }
+  // ── Build PDF ──────────────────────────────────────────────────────────
 
-  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
-  let remainingHeight = imgHeightMm;
-  let yOffset = 0;
-  let isFirstPage = true;
+  // First page: sized to first card's content height
+  const first = captures[0];
+  const firstImgH = (first.heightPx / first.widthPx) * A4_WIDTH_MM;
+  const firstPageH = Math.min(firstImgH, A4_HEIGHT_MM);
 
-  while (remainingHeight > 0) {
-    const sliceHeight = Math.min(remainingHeight, A4_HEIGHT_MM);
-    const isLastPage = sliceHeight < A4_HEIGHT_MM;
+  const pdf = new jsPDF({
+    orientation: "p",
+    unit: "mm",
+    format: [A4_WIDTH_MM, firstPageH],
+  });
 
-    if (!isFirstPage) {
-      if (isLastPage) {
-        pdf.addPage([A4_WIDTH_MM, sliceHeight]);
-      } else {
-        pdf.addPage();
+  pdf.addImage(first.dataUrl, "PNG", 0, 0, A4_WIDTH_MM, firstImgH);
+
+  // Remaining cards
+  for (let i = 1; i < captures.length; i++) {
+    const { dataUrl, widthPx, heightPx } = captures[i];
+    const imgH = (heightPx / widthPx) * A4_WIDTH_MM;
+
+    if (imgH <= A4_HEIGHT_MM) {
+      // Card fits on one page — size the page to the card
+      pdf.addPage([A4_WIDTH_MM, imgH]);
+      pdf.addImage(dataUrl, "PNG", 0, 0, A4_WIDTH_MM, imgH);
+    } else {
+      // Card taller than A4 — slice into A4 pages
+      let remaining = imgH;
+      let yOffset = 0;
+      let firstSlice = true;
+
+      while (remaining > 0) {
+        const sliceH = Math.min(remaining, A4_HEIGHT_MM);
+        if (firstSlice) {
+          pdf.addPage([A4_WIDTH_MM, sliceH]);
+        } else {
+          if (sliceH < A4_HEIGHT_MM) pdf.addPage([A4_WIDTH_MM, sliceH]);
+          else pdf.addPage();
+        }
+        pdf.addImage(dataUrl, "PNG", 0, -yOffset, A4_WIDTH_MM, imgH);
+        yOffset += sliceH;
+        remaining -= sliceH;
+        firstSlice = false;
       }
     }
-
-    pdf.addImage(dataUrl, "PNG", 0, -yOffset, imgWidthMm, imgHeightMm);
-    yOffset += sliceHeight;
-    remainingHeight -= sliceHeight;
-    isFirstPage = false;
   }
 
   pdf.save(fileName);
