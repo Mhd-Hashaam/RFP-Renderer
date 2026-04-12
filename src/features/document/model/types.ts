@@ -64,3 +64,60 @@ export type RawBlockInput =
       id?: string;
       children: RawBlockInput[];
     });
+
+// ─── Semantic Layout Engine — new types ──────────────────────────────────────
+
+/** Device capability signal — replaces numeric column count. */
+export type DeviceCapability = "mobile" | "tablet" | "desktop";
+
+/** Position of a section within the full document. */
+export type DocumentPosition = "first" | "middle" | "last";
+
+/** Visual role assigned to a section by the intelligence layer. */
+export type SectionRole = "hero" | "feature" | "gallery" | "content";
+
+/** Emphasis level derived from section role. */
+export type SectionEmphasis = "high" | "medium" | "low";
+
+/** Layout hint derived from section role. */
+export type LayoutHint = "wide" | "balanced" | "compact";
+
+/** Visual intent computed for a section — drives template styling decisions. */
+export type SectionIntent = {
+  emphasis: SectionEmphasis;
+  /** Integer in [1, 100]. Higher = more visual prominence. */
+  visualWeight: number;
+  layoutHint: LayoutHint;
+};
+
+/** A logical grouping of one optional heading and its following body blocks. */
+export type Section = {
+  /** Stable id: heading.id when heading present, else content[0].id. */
+  id: string;
+  heading: HeadingBlock | null;
+  content: Block[];
+};
+
+/** Measurable properties of a section, computed before classification. */
+export type SectionFeatures = {
+  headingLevel: HeadingLevel | null;
+  imageCount: number;
+  paragraphCount: number;
+  listCount: number;
+  /** Sum of character lengths across heading, paragraphs, and list items. */
+  totalTextLength: number;
+  documentPosition: DocumentPosition;
+};
+
+/** A section extended with its classified role, intent, and feature index. */
+export type ClassifiedSection = Section & {
+  role: SectionRole;
+  intent: SectionIntent;
+  /** Zero-based position among non-hero sections — drives layout alternation. */
+  featureIndex: number;
+};
+
+/** A page produced by the pagination engine — holds one or more sections. */
+export type SectionPage = {
+  sections: ClassifiedSection[];
+};
