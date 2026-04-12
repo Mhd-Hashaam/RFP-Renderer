@@ -108,7 +108,7 @@ function animateTransition(
   const rippleColor =
     nextTheme === "light"
       ? "rgb(210, 207, 199)"
-      : "rgb(24, 24, 27)";
+      : "rgb(10, 10, 10)";
 
   gsap.set(ripple, {
     width: diameter,
