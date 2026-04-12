@@ -4,7 +4,6 @@ import Image from "next/image";
 import { EditableText } from "../editor/EditableText";
 import { BlockRenderer } from "../BlockRenderer";
 import type { ClassifiedSection, DeviceCapability, ImageBlock } from "@/features/document/model/types";
-import { cn } from "@/lib/utils";
 
 type Props = {
   section: ClassifiedSection;

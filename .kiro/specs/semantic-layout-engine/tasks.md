@@ -1,0 +1,259 @@
+# Implementation Plan: Semantic Layout Engine
+
+## Overview
+
+Replace the fixed 3-column `buildLayoutUnits → paginate` pipeline with a section-aware, intelligence-driven rendering pipeline. The implementation is split into 10 independently-verifiable phases. Each phase ends with `npm run lint && npx tsc --noEmit && npx vitest run && npm run build` passing clean, followed by a git commit.
+
+---
+
+## Tasks
+
+- [x] 1. Types and constants — foundation
+  - Extend `src/features/document/model/types.ts` with all new types: `DeviceCapability`, `DocumentPosition`, `SectionRole`, `SectionEmphasis`, `LayoutHint`, `SectionIntent`, `Section`, `SectionFeatures`, `ClassifiedSection`, `SectionPage`
+  - Extend `src/features/document/model/constants.ts` with the five height-estimation constants: `SECTION_PAGE_CONTENT_HEIGHT_PX`, `SECTION_HEIGHT_PER_IMAGE_PX`, `SECTION_HEIGHT_PER_CHAR_PX`, `SECTION_HEIGHT_HEADING_PX`, `SECTION_HEIGHT_MIN_PX`
+  - Do NOT modify any existing type or constant — only append
+  - Verify zero TypeScript errors and zero lint errors, then commit
+  - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1, 12.1, 16.1_
+
+- [x] 2. Intelligence module — pure functions + unit tests
+  - [x] 2.1 Create `src/features/document/intelligence/groupIntoSections.ts`
+    - Implement `groupIntoSections(blocks: Block[]): Section[]`
+    - Linear scan: on `HeadingBlock` commit current accumulator and start new section; pre-heading body blocks go into a section with `heading: null`
+    - Section `id` = `heading.id` when heading present, else `content[0].id`
+    - Empty input returns `[]`
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6_
+  - [x] 2.2 Create `src/features/document/intelligence/__tests__/groupIntoSections.test.ts`
+    - Unit tests: empty array, single heading, body-before-heading, multiple headings, id derivation
+    - _Requirements: 1.1–1.6_
+  - [x] 2.3 Create `src/features/document/intelligence/analyzeSection.ts`
+    - Implement `analyzeSection(section: Section, index: number, total: number): SectionFeatures`
+    - Count `ImageBlock`, `ParagraphBlock`, `ListBlock` in `section.content`
+    - Sum character lengths of heading content, paragraph content, and list items for `totalTextLength`
+    - Derive `documentPosition`: `"first"` when `index === 0`, `"last"` when `index === total - 1`, `"middle"` otherwise
+    - _Requirements: 2.1–2.8_
+  - [x] 2.4 Create `src/features/document/intelligence/__tests__/analyzeSection.test.ts`
+    - Unit tests: heading-only section, image-only section, mixed content, first/middle/last position, null heading
+    - _Requirements: 2.1–2.8_
+  - [x] 2.5 Create `src/features/document/intelligence/classifySection.ts`
+    - Implement `classifySection(section: Section, features: SectionFeatures, featureIndex: number): ClassifiedSection`
+    - Apply decision tree in order: `"first"` → hero; non-first + `headingLevel === 1` → feature; `imageCount >= 3` → gallery; `imageCount >= 1 && paragraphCount >= 1` → feature; else → content
+    - Compute `SectionIntent` using the formula table from the design doc; clamp `visualWeight` with `Math.max(1, Math.min(100, Math.round(raw)))`
+    - Use exhaustive `never` guard on the role switch
+    - _Requirements: 3.1–3.12_
+  - [x] 2.6 Create `src/features/document/intelligence/__tests__/classifySection.test.ts`
+    - Unit tests: first section always hero, H1 downgrade, gallery threshold (exactly 3 images), feature (1 image + 1 paragraph), content fallback, featureIndex assignment, all three `SectionIntent` fields for each role
+    - _Requirements: 3.1–3.12_
+  - [x] 2.7 Create `src/features/document/intelligence/estimateSectionHeight.ts`
+    - Implement `estimateSectionHeight(section: ClassifiedSection): number`
+    - Formula: `imageCount * SECTION_HEIGHT_PER_IMAGE_PX + totalTextLength * SECTION_HEIGHT_PER_CHAR_PX + (heading ? SECTION_HEIGHT_HEADING_PX : 0)`
+    - Return `Math.max(SECTION_HEIGHT_MIN_PX, Math.round(raw))`
+    - _Requirements: 4.1–4.6_
+  - [x] 2.8 Create `src/features/document/intelligence/__tests__/estimateSectionHeight.test.ts`
+    - Unit tests: empty section returns 1, heading adds fixed amount, each image adds fixed amount, text length scales linearly
+    - _Requirements: 4.1–4.6_
+  - [x] 2.9 Create `src/features/document/intelligence/paginateSections.ts`
+    - Implement `paginateSections(sections: ClassifiedSection[], pageContentHeightPx: number): SectionPage[]`
+    - Accumulate sections onto current page; when a section does not fit and the page is non-empty, start a new page; oversized section gets its own page
+    - Never produce an empty page; preserve document order
+    - _Requirements: 5.1–5.7_
+  - [x] 2.10 Create `src/features/document/intelligence/__tests__/paginateSections.test.ts`
+    - Unit tests: empty input, single section, section that exceeds page height alone, multiple sections fitting one page, sections spanning multiple pages, order preservation
+    - _Requirements: 5.1–5.7_
+  - [x] 2.11 Create `src/features/document/intelligence/pipeline.ts`
+    - Implement `runPipeline(blocks: Block[], pageContentHeightPx: number): SectionPage[]`
+    - Chain: `groupIntoSections` → `analyzeSection × N` → `classifySection × N` (tracking `featureIndex`) → `paginateSections`
+    - _Requirements: 15.6_
+  - [x] 2.12 Create `src/features/document/intelligence/__tests__/pipeline.test.ts`
+    - Unit tests: empty blocks, single block, full mock-data round-trip (sections non-empty, pages non-empty, all blocks accounted for)
+    - _Requirements: 15.6_
+  - Run `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`, fix any issues, then commit
+  - _Requirements: 1–5, 15_
+
+- [ ] 3. Intelligence module — property-based tests
+  - [ ] 3.1 Add fast-check property tests to `src/features/document/intelligence/__tests__/groupIntoSections.test.ts`
+    - Define `arbBlock()` arbitrary covering all five block subtypes with random ids and content
+    - Define `arbBlockArray()` arbitrary (length 0–20)
+    - [ ] 3.1.1 Property 1: Section grouping covers all blocks — union of all section blocks equals input array (same elements, same order)
+      - `// Feature: semantic-layout-engine, Property 1: Section grouping covers all blocks`
+      - **Validates: Requirements 1.1, 1.2, 1.3, 15.1**
+    - [ ] 3.1.2 Property 2: Section id derivation — every section id equals `heading.id` or `content[0].id`
+      - `// Feature: semantic-layout-engine, Property 2: Section id derivation`
+      - **Validates: Requirements 1.4**
+    - [ ] 3.1.3 Property 3: groupIntoSections determinism — two calls with same input produce structurally equal output
+      - `// Feature: semantic-layout-engine, Property 3: groupIntoSections determinism`
+      - **Validates: Requirements 1.5, 15.1**
+    - _Requirements: 1.1–1.5, 15.1_
+  - [ ] 3.2 Add fast-check property tests to `src/features/document/intelligence/__tests__/analyzeSection.test.ts`
+    - Define `arbSection()` arbitrary
+    - [ ] 3.2.1 Property 4: analyzeSection feature counts are accurate
+      - `// Feature: semantic-layout-engine, Property 4: analyzeSection feature counts are accurate`
+      - **Validates: Requirements 2.2–2.6**
+    - [ ] 3.2.2 Property 5: documentPosition is correctly assigned for all array lengths ≥ 1
+      - `// Feature: semantic-layout-engine, Property 5: documentPosition is correctly assigned`
+      - **Validates: Requirements 2.7**
+    - _Requirements: 2.2–2.7_
+  - [ ] 3.3 Add fast-check property tests to `src/features/document/intelligence/__tests__/classifySection.test.ts`
+    - Define `arbSectionFeatures()` arbitrary
+    - [ ] 3.3.1 Property 6: Hero role always assigned to first section
+      - `// Feature: semantic-layout-engine, Property 6: Hero role is always assigned to the first section`
+      - **Validates: Requirements 3.2**
+    - [ ] 3.3.2 Property 7: Classification rules are mutually consistent — role, emphasis, layoutHint, and visualWeight all satisfy the mapping table; visualWeight is integer in [1, 100]
+      - `// Feature: semantic-layout-engine, Property 7: Classification rules are mutually consistent`
+      - **Validates: Requirements 3.3–3.9**
+    - [ ] 3.3.3 Property 8: featureIndex increments monotonically for non-hero sections
+      - `// Feature: semantic-layout-engine, Property 8: featureIndex increments monotonically for non-hero sections`
+      - **Validates: Requirements 3.10**
+    - [ ] 3.3.4 Property 9: classifySection is idempotent
+      - `// Feature: semantic-layout-engine, Property 9: classifySection is idempotent`
+      - **Validates: Requirements 3.12, 15.3**
+    - _Requirements: 3.2–3.12, 15.3_
+  - [ ] 3.4 Add fast-check property tests to `src/features/document/intelligence/__tests__/estimateSectionHeight.test.ts`
+    - Define `arbClassifiedSection()` arbitrary
+    - [ ] 3.4.1 Property 10: estimateSectionHeight is always positive for non-empty sections
+      - `// Feature: semantic-layout-engine, Property 10: estimateSectionHeight is always positive`
+      - **Validates: Requirements 4.1, 4.5**
+    - [ ] 3.4.2 Property 11: estimateSectionHeight is monotone with content — adding an ImageBlock strictly increases the estimate
+      - `// Feature: semantic-layout-engine, Property 11: estimateSectionHeight is monotone with content`
+      - **Validates: Requirements 4.2, 4.3, 4.4**
+    - _Requirements: 4.1–4.5_
+  - [ ] 3.5 Add fast-check property tests to `src/features/document/intelligence/__tests__/paginateSections.test.ts`
+    - [ ] 3.5.1 Property 12: Pagination preserves all sections — ordered concatenation of all page sections equals input
+      - `// Feature: semantic-layout-engine, Property 12: Pagination preserves all sections`
+      - **Validates: Requirements 5.5, 5.7**
+    - [ ] 3.5.2 Property 13: No empty pages — every SectionPage contains at least one section
+      - `// Feature: semantic-layout-engine, Property 13: No empty pages`
+      - **Validates: Requirements 5.4**
+    - _Requirements: 5.4, 5.5, 5.7_
+  - [ ] 3.6 Add fast-check property tests to `src/features/document/intelligence/__tests__/pipeline.test.ts`
+    - [ ] 3.6.1 Property 14: Full pipeline determinism — two calls with same Block[] produce structurally equal SectionPage[] outputs
+      - `// Feature: semantic-layout-engine, Property 14: Full pipeline determinism`
+      - **Validates: Requirements 15.6**
+    - _Requirements: 15.6_
+  - All property tests use `{ numRuns: 100 }` minimum
+  - Run `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`, fix any issues, then commit
+  - _Requirements: 1–5, 15_
+
+- [x] 4. useColumnCount refactor
+  - Modify `src/features/document/hooks/useColumnCount.ts` to export `DeviceCapability` type and return `DeviceCapability` instead of `number`
+  - Import `DeviceCapability` from `types.ts` (do not redefine it)
+  - Breakpoints: `< 768px` → `"mobile"`, `768–1279px` → `"tablet"`, `≥ 1280px` → `"desktop"`
+  - Replace `window.matchMedia("(max-width: 1023px)")` and `"(max-width: 639px)"` with `"(max-width: 767px)"` and `"(min-width: 1280px)"` queries
+  - SSR-safe default: `"desktop"`
+  - `DocumentApp` currently reads `columnCount` as a number and passes it to `DocumentRenderer` and displays it in the footer — update those references to accept the string literal type (the renderer replacement in phase 7 will remove the prop entirely; for now, keep the app compiling by updating the footer display text)
+  - Run `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`, fix any issues, then commit
+  - _Requirements: 12.1–12.5_
+
+- [x] 5. Section template components
+  - [x] 5.1 Create `src/features/document/components/sections/HeroSection.tsx`
+    - Props: `section: ClassifiedSection`, `device: DeviceCapability`, `onUpdateHeading`, `onUpdateParagraph`, `onUpdateListItem`
+    - Desktop/tablet: `grid grid-cols-3` — text in cols 1–2 (`col-span-2`), first image in col 3
+    - Mobile: single column, text above image
+    - No image: full-width text
+    - Heading: `text-5xl font-bold`; render via `BlockRenderer` or inline `EditableText`
+    - Outer spacing: `mb-16`
+    - _Requirements: 6.1–6.5_
+  - [x] 5.2 Create `src/features/document/components/sections/FeatureSection.tsx`
+    - Props: same shape as HeroSection
+    - Desktop/tablet: `grid grid-cols-2`; even `featureIndex` → image left, text right; odd → text left, image right
+    - Mobile: single column, image above text
+    - Outer spacing: `mb-16`
+    - _Requirements: 7.1–7.5_
+  - [x] 5.3 Create `src/features/document/components/sections/GallerySection.tsx`
+    - Props: same shape as HeroSection
+    - Heading full-width above grid
+    - 2 images: `grid-cols-2` 50/50; 3 images: first `col-span-2` + two in `grid-cols-2`; 4+ images: uniform `grid-cols-2`
+    - Captions: `text-zinc-500 text-xs italic` when `caption` is present
+    - Outer spacing: `mb-16`
+    - _Requirements: 8.1–8.6_
+  - [x] 5.4 Create `src/features/document/components/sections/ContentSection.tsx`
+    - Props: same shape as HeroSection
+    - Single column, `max-w-prose`
+    - `mb-6` between consecutive blocks
+    - Outer spacing: `mb-16`
+    - _Requirements: 9.1–9.3_
+  - [x] 5.5 Create `src/features/document/components/sections/SectionRenderer.tsx`
+    - Props: `section: ClassifiedSection`, `device: DeviceCapability`, `onUpdateHeading`, `onUpdateParagraph`, `onUpdateListItem`
+    - Switch on `section.role` dispatching to the four templates; exhaustive `never` guard with runtime fallback to `ContentSection`
+    - _Requirements: 10.1–10.6_
+  - Run `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`, fix any issues, then commit
+  - _Requirements: 6–10_
+
+- [x] 6. DocumentOutline sidebar component
+  - Create `src/features/document/components/sidebar/DocumentOutline.tsx`
+  - Props: `sections: ClassifiedSection[]`
+  - Render one `<button>` per section with a non-null heading; skip headingless sections
+  - Attach `data-section-id={section.id}` to each section's DOM node (the section templates must also render this attribute — add it to each template's root element in this phase)
+  - Use `IntersectionObserver` on elements matching `[data-section-id]` to track the active section; update active state on intersection change
+  - Click handler: `document.querySelector(`[data-section-id="${section.id}"]`)?.scrollIntoView({ behavior: "smooth" })`
+  - Active entry: `text-white font-semibold` + left accent bar (`border-l-2 border-white pl-2`)
+  - Inactive entry: `text-white/50 hover:text-white/80`
+  - Container: `overflow-y-auto scrollbar-none`
+  - Empty state: `<p className="text-white/30 text-xs px-3">No headings</p>`
+  - No block-type badges, no block-count labels
+  - Run `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`, fix any issues, then commit
+  - _Requirements: 11.1–11.7_
+
+- [x] 7. DocumentRenderer replacement + Page update
+  - [x] 7.1 Replace `src/features/document/components/DocumentRenderer.tsx`
+    - New props: `blocks: Block[]`, `device: DeviceCapability`, `onUpdateHeading`, `onUpdateParagraph`, `onUpdateListItem`
+    - Remove `columnCount: number` prop
+    - Run `runPipeline(blocks, SECTION_PAGE_CONTENT_HEIGHT_PX)` inside `useMemo([blocks])`
+    - Render one `<Page>` per `SectionPage`
+    - _Requirements: 5.1, 15.6_
+  - [x] 7.2 Modify `src/features/document/components/Page.tsx`
+    - Replace `columns: LayoutUnit[][]` + `columnCount` props with `sections: ClassifiedSection[]` + `device: DeviceCapability`
+    - Render `<SectionRenderer>` per section instead of `<Column>` per column
+    - Apply dark-theme card styles: `bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl` (keep existing light-mode styles via `dark:` prefix)
+    - Keep page footer (page N of M)
+    - _Requirements: 13.2_
+  - Run `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`, fix any issues, then commit
+  - _Requirements: 5, 13.2_
+
+- [x] 8. DocumentApp wiring
+  - Modify `src/features/document/components/DocumentApp.tsx`
+  - Replace `SortableOutline` in the sidebar with `DocumentOutline`; pass `sections` derived from `runPipeline(resolvedBlocks, SECTION_PAGE_CONTENT_HEIGHT_PX)` via `useMemo`
+  - Add a toolbar toggle button (use `GripVertical` or `List` icon from lucide-react) that opens a modal or slide-over drawer containing `SortableOutline` for DnD reordering; the toggle is separate from the sidebar collapse button
+  - Pass `device` (from `useColumnCount`) to `DocumentRenderer` instead of `columnCount`
+  - Update sidebar footer to show section count instead of block count + column count
+  - Apply `bg-[#0a0a0a]` to the root container in dark mode via `dark:bg-[#0a0a0a]`
+  - Remove the background image reference if present
+  - _Requirements: 13.1, 13.6, 14.1, 14.4_
+  - Run `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`, fix any issues, then commit
+
+- [x] 9. Visual system — dark theme
+  - [x] 9.1 Update `src/app/globals.css`
+    - Remove or disable the background image rule that references `Background.webp` (or any `background-image` on the root/body in dark mode)
+    - _Requirements: 13.6_
+  - [x] 9.2 Audit heading, body text, and caption elements across all new section templates
+    - Dark mode headings: `dark:text-zinc-100`
+    - Dark mode body text: `dark:text-zinc-400`
+    - Dark mode captions: already `text-zinc-500 text-xs italic` (verify no override needed)
+    - _Requirements: 13.3, 13.4, 13.5_
+  - [x] 9.3 Verify `Page.tsx` card styles applied in phase 7 are correct
+    - `dark:bg-zinc-900 dark:border-zinc-800` — confirm these are scoped to dark mode and do not break light mode
+    - _Requirements: 13.2_
+  - Run `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`, fix any issues, then commit
+  - _Requirements: 13.1–13.6_
+
+- [-] 10. Final cleanup, checkpoint, and commit
+  - Run the full verification suite: `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`
+  - Fix any remaining lint warnings, type errors, or test failures
+  - Confirm `layout/` folder is untouched (no modifications to `buildLayoutUnits.ts`, `paginate.ts`, `estimateHeight.ts`, `measureHeights.ts`)
+  - Confirm `normalize.ts`, `EditableText.tsx`, `exportPdfFromElement.ts`, `ThemeProvider.tsx`, `ThemeToggle.tsx`, `useDocumentStore.ts` are unmodified
+  - Confirm `BlockRenderer.tsx` existing tests still pass
+  - Confirm no `any` types introduced anywhere in new files
+  - Confirm all new files match the exact filenames specified in the design doc folder structure
+  - Commit all remaining changes
+  - _Requirements: 15.7, 16.1–16.7_
+
+---
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for faster MVP
+- Each phase ends with `npm run lint && npx tsc --noEmit && npx vitest run && npm run build` passing clean, then a git commit
+- No `any` types anywhere — use `never` exhaustive guards on all discriminated union switches
+- File names must match the design doc exactly (e.g. `groupIntoSections.ts`, not `group-into-sections.ts`)
+- Property-based tests use `fast-check` with `{ numRuns: 100 }` minimum; each test is tagged with `// Feature: semantic-layout-engine, Property N: <text>`
+- The `layout/` folder and all modules listed under "What Stays" in the design are not touched
+- `data-section-id` attributes on section template root elements are required for `DocumentOutline`'s `IntersectionObserver` to work
