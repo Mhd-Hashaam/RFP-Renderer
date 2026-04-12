@@ -1,31 +1,34 @@
 "use client";
 
 import { useMemo } from "react";
-import { buildLayoutUnits } from "@/features/document/layout/buildLayoutUnits";
-import { paginate } from "@/features/document/layout/paginate";
-import { PAGE_CONTENT_HEIGHT_PX } from "@/features/document/model/constants";
-import type { Block } from "@/features/document/model/types";
+import { runPipeline } from "@/features/document/intelligence/pipeline";
+import { SECTION_PAGE_CONTENT_HEIGHT_PX } from "@/features/document/model/constants";
+import type { Block, DeviceCapability } from "@/features/document/model/types";
 import { Page } from "./Page";
 
 type Props = {
   blocks: Block[];
-  columnCount: number;
+  device: DeviceCapability;
   onUpdateHeading: (id: string, content: string) => void;
   onUpdateParagraph: (id: string, content: string) => void;
   onUpdateListItem: (id: string, index: number, value: string) => void;
 };
 
+/**
+ * Runs the semantic layout pipeline and renders the resulting pages.
+ * Each page is a card containing one or more classified sections.
+ */
 export function DocumentRenderer({
   blocks,
-  columnCount,
+  device,
   onUpdateHeading,
   onUpdateParagraph,
   onUpdateListItem,
 }: Props) {
-  const pages = useMemo(() => {
-    const units = buildLayoutUnits(blocks);
-    return paginate(units, columnCount, PAGE_CONTENT_HEIGHT_PX);
-  }, [blocks, columnCount]);
+  const pages = useMemo(
+    () => runPipeline(blocks, SECTION_PAGE_CONTENT_HEIGHT_PX),
+    [blocks],
+  );
 
   return (
     <div className="flex flex-col gap-8">
@@ -34,8 +37,8 @@ export function DocumentRenderer({
           key={`page-${idx}`}
           pageIndex={idx}
           totalPages={pages.length}
-          columns={page.columns}
-          columnCount={columnCount}
+          sections={page.sections}
+          device={device}
           onUpdateHeading={onUpdateHeading}
           onUpdateParagraph={onUpdateParagraph}
           onUpdateListItem={onUpdateListItem}

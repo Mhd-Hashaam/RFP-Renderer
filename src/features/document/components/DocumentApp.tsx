@@ -144,7 +144,7 @@ export function DocumentApp({ initialBlocks }: Props) {
           <div ref={pdfRef} className="mx-auto max-w-[1400px] space-y-8 px-6 py-8">
             <DocumentRenderer
               blocks={resolvedBlocks}
-              columnCount={device === "desktop" ? 3 : device === "tablet" ? 2 : 1}
+              device={device}
               onUpdateHeading={updateHeading}
               onUpdateParagraph={updateParagraph}
               onUpdateListItem={updateListItem}
