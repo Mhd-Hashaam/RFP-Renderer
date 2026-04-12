@@ -1,69 +1,40 @@
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 
-// A4 dimensions in mm
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
 
-// Capture width in px — matches a standard A4 document at 96dpi
-const CAPTURE_WIDTH_PX = 1240;
+// Render width in px — A4 at 96dpi ≈ 794px; we use 1200 for higher fidelity
+const RENDER_WIDTH_PX = 1200;
 
 /**
- * Prepares the element for full-document capture:
- * - Fixes the element width to CAPTURE_WIDTH_PX so the PDF isn't clipped
- * - Removes overflow constraints on ancestor scroll containers so all
- *   content is rendered (not just the visible viewport)
- *
- * Returns a cleanup function that restores all original styles.
+ * Waits for all <img> elements inside a node to finish loading.
+ * This prevents html-to-image from capturing blank image placeholders.
  */
-function prepareForCapture(root: HTMLElement): () => void {
-  const restorers: Array<() => void> = [];
-
-  // 1. Fix the capture element's width so it matches A4 proportions
-  const origWidth = root.style.width;
-  const origMaxWidth = root.style.maxWidth;
-  root.style.width = `${CAPTURE_WIDTH_PX}px`;
-  root.style.maxWidth = `${CAPTURE_WIDTH_PX}px`;
-  restorers.push(() => {
-    root.style.width = origWidth;
-    root.style.maxWidth = origMaxWidth;
-  });
-
-  // 2. Walk up the DOM and remove overflow:hidden / overflow:auto / overflow:scroll
-  //    on all ancestors so html-to-image can see the full content height
-  let el: HTMLElement | null = root.parentElement;
-  while (el && el !== document.body) {
-    const cs = window.getComputedStyle(el);
-    const overflowY = cs.overflowY;
-    if (overflowY === "auto" || overflowY === "scroll" || overflowY === "hidden") {
-      const orig = el.style.overflowY;
-      const origHeight = el.style.height;
-      const origMaxHeight = el.style.maxHeight;
-      el.style.overflowY = "visible";
-      el.style.height = "auto";
-      el.style.maxHeight = "none";
-      const captured = el; // capture for closure
-      const origOY = orig;
-      const origH = origHeight;
-      const origMH = origMaxHeight;
-      restorers.push(() => {
-        captured.style.overflowY = origOY;
-        captured.style.height = origH;
-        captured.style.maxHeight = origMH;
-      });
-    }
-    el = el.parentElement;
-  }
-
-  return () => restorers.forEach((r) => r());
+async function waitForImages(root: HTMLElement): Promise<void> {
+  const images = Array.from(root.querySelectorAll<HTMLImageElement>("img"));
+  await Promise.all(
+    images.map(
+      (img) =>
+        new Promise<void>((resolve) => {
+          if (img.complete && img.naturalWidth > 0) {
+            resolve();
+          } else {
+            img.onload = () => resolve();
+            img.onerror = () => resolve(); // don't block on broken images
+          }
+        }),
+    ),
+  );
 }
 
 /**
- * Exports the full document as a multi-page PDF.
+ * Exports the document as a multi-page PDF.
  *
- * Fixes two common problems:
- * 1. Content clipped on the right — solved by fixing capture width to A4 proportions.
- * 2. Only visible viewport captured — solved by removing overflow constraints before capture.
+ * Strategy: clone the target element into a fixed-width off-screen container,
+ * wait for all images to load, capture the full clone, then destroy it.
+ * This avoids mutating the live DOM (which caused sidebar layout shifts and
+ * overflow clipping issues in the previous approach).
  */
 export async function exportPdfFromElement(
   element: HTMLElement,
@@ -72,18 +43,55 @@ export async function exportPdfFromElement(
   const isDark = document.documentElement.classList.contains("dark");
   const bgColor = isDark ? "#0a0a0a" : "#d2cfc7";
 
-  const restore = prepareForCapture(element);
+  // ── 1. Create an off-screen container ──────────────────────────────────
+  const offscreen = document.createElement("div");
+  offscreen.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: -9999px;
+    width: ${RENDER_WIDTH_PX}px;
+    background: ${bgColor};
+    z-index: -1;
+    pointer-events: none;
+  `;
 
+  // ── 2. Clone the content into it ───────────────────────────────────────
+  const clone = element.cloneNode(true) as HTMLElement;
+  clone.style.cssText = `
+    width: ${RENDER_WIDTH_PX}px;
+    max-width: ${RENDER_WIDTH_PX}px;
+    overflow: visible;
+    height: auto;
+    padding: 32px;
+    box-sizing: border-box;
+  `;
+
+  offscreen.appendChild(clone);
+  document.body.appendChild(offscreen);
+
+  // ── 3. Wait for all images in the clone to load ────────────────────────
+  // Re-trigger loading by resetting src on cloned images
+  const clonedImgs = Array.from(clone.querySelectorAll<HTMLImageElement>("img"));
+  clonedImgs.forEach((img) => {
+    const src = img.getAttribute("src");
+    if (src) {
+      img.src = "";
+      img.src = src;
+    }
+  });
+  await waitForImages(clone);
+
+  // ── 4. Capture the full clone ──────────────────────────────────────────
   let dataUrl: string;
   let naturalWidth: number;
   let naturalHeight: number;
 
   try {
-    dataUrl = await toPng(element, {
+    dataUrl = await toPng(offscreen, {
       pixelRatio: 2,
       backgroundColor: bgColor,
       skipFonts: false,
-      width: CAPTURE_WIDTH_PX,
+      width: RENDER_WIDTH_PX,
     });
 
     await new Promise<void>((resolve, reject) => {
@@ -97,14 +105,16 @@ export async function exportPdfFromElement(
       img.src = dataUrl;
     });
   } finally {
-    restore();
+    // ── 5. Always clean up the off-screen node ─────────────────────────
+    document.body.removeChild(offscreen);
   }
 
+  // ── 6. Build the PDF ───────────────────────────────────────────────────
   const imgWidthMm = A4_WIDTH_MM;
   const imgHeightMm = (naturalHeight! / naturalWidth!) * imgWidthMm;
 
   if (imgHeightMm <= A4_HEIGHT_MM) {
-    // Single page — size the PDF exactly to the content height
+    // Single page — size exactly to content, no trailing blank space
     const pdf = new jsPDF({
       orientation: "p",
       unit: "mm",
