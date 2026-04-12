@@ -97,3 +97,68 @@ describe("estimateSectionHeight", () => {
     expect(estimateSectionHeight(hero)).toBeGreaterThan(estimateSectionHeight(content));
   });
 });
+
+// ─── Property-based tests ─────────────────────────────────────────────────────
+
+import * as fc from "fast-check";
+import type { ClassifiedSection as ClassifiedSectionType } from "../../model/types";
+
+function arbClassifiedSection(): fc.Arbitrary<ClassifiedSectionType> {
+  const arbRole = fc.constantFrom("hero" as const, "feature" as const, "gallery" as const, "content" as const);
+  return arbRole.chain((role) =>
+    fc.record({
+      id: fc.uuid(),
+      heading: fc.option(
+        fc.record({ id: fc.uuid(), type: fc.constant("heading" as const), level: fc.constantFrom(1 as const, 2 as const, 3 as const), content: fc.string({ minLength: 0, maxLength: 40 }) }),
+        { nil: null },
+      ),
+      content: fc.array(
+        fc.oneof(
+          fc.record({ id: fc.uuid(), type: fc.constant("paragraph" as const), content: fc.string({ minLength: 0, maxLength: 100 }) }),
+          fc.record({ id: fc.uuid(), type: fc.constant("image" as const), src: fc.constant("/img.webp"), alt: fc.string({ minLength: 1, maxLength: 10 }) }),
+        ),
+        { minLength: 0, maxLength: 5 },
+      ),
+      role: fc.constant(role),
+      intent: fc.record({
+        emphasis: fc.constant(role === "hero" ? "high" as const : role === "content" ? "low" as const : "medium" as const),
+        visualWeight: fc.integer({ min: 1, max: 100 }),
+        layoutHint: fc.constant(role === "hero" ? "wide" as const : role === "content" ? "compact" as const : "balanced" as const),
+      }),
+      featureIndex: fc.nat({ max: 10 }),
+    }) as fc.Arbitrary<ClassifiedSectionType>,
+  );
+}
+
+describe("estimateSectionHeight — property-based tests", () => {
+  // Feature: semantic-layout-engine, Property 10: estimateSectionHeight is always positive
+  it("Property 10: estimateSectionHeight returns a value >= 1 for any section", () => {
+    fc.assert(
+      fc.property(arbClassifiedSection(), (section) => {
+        expect(estimateSectionHeight(section)).toBeGreaterThanOrEqual(1);
+      }),
+      { numRuns: 100 },
+    );
+  });
+
+  // Feature: semantic-layout-engine, Property 11: estimateSectionHeight is monotone with content
+  it("Property 11: adding an ImageBlock strictly increases the estimate", () => {
+    fc.assert(
+      fc.property(arbClassifiedSection(), (section) => {
+        const withoutImage: ClassifiedSectionType = {
+          ...section,
+          content: section.content.filter((b) => b.type !== "image"),
+        };
+        const withImage: ClassifiedSectionType = {
+          ...withoutImage,
+          content: [
+            ...withoutImage.content,
+            { id: "extra-img", type: "image" as const, src: "/img.webp", alt: "extra" },
+          ],
+        };
+        expect(estimateSectionHeight(withImage)).toBeGreaterThan(estimateSectionHeight(withoutImage));
+      }),
+      { numRuns: 100 },
+    );
+  });
+});

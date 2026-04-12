@@ -87,3 +87,53 @@ describe("paginateSections", () => {
     expect(new Set(allIds).size).toBe(sections.length);
   });
 });
+
+// ─── Property-based tests ─────────────────────────────────────────────────────
+
+import * as fc from "fast-check";
+import type { ClassifiedSection as CS } from "../../model/types";
+
+function arbSmallSection(id: string): CS {
+  return {
+    id,
+    heading: { id: `h-${id}`, type: "heading", level: 2, content: "T" },
+    content: [{ id: `p-${id}`, type: "paragraph", content: "x".repeat(10) }],
+    role: "content",
+    intent: { emphasis: "low", visualWeight: 10, layoutHint: "compact" },
+    featureIndex: 0,
+  };
+}
+
+function arbClassifiedSectionArray(): fc.Arbitrary<CS[]> {
+  return fc.array(
+    fc.uuid().map((id) => arbSmallSection(id)),
+    { minLength: 0, maxLength: 15 },
+  );
+}
+
+describe("paginateSections — property-based tests", () => {
+  // Feature: semantic-layout-engine, Property 12: Pagination preserves all sections
+  it("Property 12: ordered concatenation of all page sections equals input", () => {
+    fc.assert(
+      fc.property(arbClassifiedSectionArray(), fc.integer({ min: 200, max: 2000 }), (sections, pageHeight) => {
+        const pages = paginateSections(sections, pageHeight);
+        const allIds = pages.flatMap((p) => p.sections.map((s) => s.id));
+        expect(allIds).toEqual(sections.map((s) => s.id));
+      }),
+      { numRuns: 100 },
+    );
+  });
+
+  // Feature: semantic-layout-engine, Property 13: No empty pages
+  it("Property 13: every SectionPage contains at least one section", () => {
+    fc.assert(
+      fc.property(arbClassifiedSectionArray(), fc.integer({ min: 200, max: 2000 }), (sections, pageHeight) => {
+        const pages = paginateSections(sections, pageHeight);
+        for (const page of pages) {
+          expect(page.sections.length).toBeGreaterThan(0);
+        }
+      }),
+      { numRuns: 100 },
+    );
+  });
+});

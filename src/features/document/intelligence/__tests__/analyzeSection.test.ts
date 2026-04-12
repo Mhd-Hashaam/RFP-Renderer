@@ -115,3 +115,62 @@ describe("analyzeSection", () => {
     expect(analyzeSection(section, 0, 1).documentPosition).toBe("first");
   });
 });
+
+// ─── Property-based tests ─────────────────────────────────────────────────────
+
+import * as fc from "fast-check";
+import type { Block as BlockType, Section as SectionType } from "../../model/types";
+
+function arbContentBlock(): fc.Arbitrary<BlockType> {
+  return fc.oneof(
+    fc.record({ id: fc.uuid(), type: fc.constant("paragraph" as const), content: fc.string({ minLength: 0, maxLength: 80 }) }),
+    fc.record({ id: fc.uuid(), type: fc.constant("image" as const), src: fc.constant("/img.webp"), alt: fc.string({ minLength: 1, maxLength: 10 }), caption: fc.option(fc.string({ minLength: 1, maxLength: 20 }), { nil: undefined }) }),
+    fc.record({ id: fc.uuid(), type: fc.constant("list" as const), style: fc.constantFrom("ordered" as const, "unordered" as const), items: fc.array(fc.string({ minLength: 1, maxLength: 20 }), { minLength: 1, maxLength: 4 }) }),
+  ) as fc.Arbitrary<BlockType>;
+}
+
+function arbSection(): fc.Arbitrary<SectionType> {
+  return fc.record({
+    id: fc.uuid(),
+    heading: fc.option(
+      fc.record({ id: fc.uuid(), type: fc.constant("heading" as const), level: fc.constantFrom(1 as const, 2 as const, 3 as const), content: fc.string({ minLength: 0, maxLength: 40 }) }),
+      { nil: null },
+    ),
+    content: fc.array(arbContentBlock(), { minLength: 0, maxLength: 8 }),
+  }) as fc.Arbitrary<SectionType>;
+}
+
+describe("analyzeSection — property-based tests", () => {
+  // Feature: semantic-layout-engine, Property 4: analyzeSection feature counts are accurate
+  it("Property 4: imageCount, paragraphCount, listCount match actual block counts", () => {
+    fc.assert(
+      fc.property(arbSection(), fc.nat({ max: 10 }), fc.integer({ min: 1, max: 20 }), (section, index, total) => {
+        const safeIndex = Math.min(index, total - 1);
+        const features = analyzeSection(section, safeIndex, total);
+
+        const actualImages = section.content.filter((b) => b.type === "image").length;
+        const actualParas = section.content.filter((b) => b.type === "paragraph").length;
+        const actualLists = section.content.filter((b) => b.type === "list").length;
+
+        expect(features.imageCount).toBe(actualImages);
+        expect(features.paragraphCount).toBe(actualParas);
+        expect(features.listCount).toBe(actualLists);
+      }),
+      { numRuns: 100 },
+    );
+  });
+
+  // Feature: semantic-layout-engine, Property 5: documentPosition is correctly assigned
+  it("Property 5: documentPosition is 'first' at index 0, 'last' at index total-1, 'middle' otherwise", () => {
+    fc.assert(
+      fc.property(arbSection(), fc.integer({ min: 2, max: 20 }), (section, total) => {
+        expect(analyzeSection(section, 0, total).documentPosition).toBe("first");
+        expect(analyzeSection(section, total - 1, total).documentPosition).toBe("last");
+        if (total > 2) {
+          expect(analyzeSection(section, 1, total).documentPosition).toBe("middle");
+        }
+      }),
+      { numRuns: 100 },
+    );
+  });
+});

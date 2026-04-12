@@ -69,63 +69,63 @@ Replace the fixed 3-column `buildLayoutUnits → paginate` pipeline with a secti
   - Run `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`, fix any issues, then commit
   - _Requirements: 1–5, 15_
 
-- [ ] 3. Intelligence module — property-based tests
-  - [ ] 3.1 Add fast-check property tests to `src/features/document/intelligence/__tests__/groupIntoSections.test.ts`
+- [-] 3. Intelligence module — property-based tests
+  - [x] 3.1 Add fast-check property tests to `src/features/document/intelligence/__tests__/groupIntoSections.test.ts`
     - Define `arbBlock()` arbitrary covering all five block subtypes with random ids and content
     - Define `arbBlockArray()` arbitrary (length 0–20)
-    - [ ] 3.1.1 Property 1: Section grouping covers all blocks — union of all section blocks equals input array (same elements, same order)
+    - [x] 3.1.1 Property 1: Section grouping covers all blocks — union of all section blocks equals input array (same elements, same order)
       - `// Feature: semantic-layout-engine, Property 1: Section grouping covers all blocks`
       - **Validates: Requirements 1.1, 1.2, 1.3, 15.1**
-    - [ ] 3.1.2 Property 2: Section id derivation — every section id equals `heading.id` or `content[0].id`
+    - [x] 3.1.2 Property 2: Section id derivation — every section id equals `heading.id` or `content[0].id`
       - `// Feature: semantic-layout-engine, Property 2: Section id derivation`
       - **Validates: Requirements 1.4**
-    - [ ] 3.1.3 Property 3: groupIntoSections determinism — two calls with same input produce structurally equal output
+    - [x] 3.1.3 Property 3: groupIntoSections determinism — two calls with same input produce structurally equal output
       - `// Feature: semantic-layout-engine, Property 3: groupIntoSections determinism`
       - **Validates: Requirements 1.5, 15.1**
     - _Requirements: 1.1–1.5, 15.1_
-  - [ ] 3.2 Add fast-check property tests to `src/features/document/intelligence/__tests__/analyzeSection.test.ts`
+  - [x] 3.2 Add fast-check property tests to `src/features/document/intelligence/__tests__/analyzeSection.test.ts`
     - Define `arbSection()` arbitrary
-    - [ ] 3.2.1 Property 4: analyzeSection feature counts are accurate
+    - [x] 3.2.1 Property 4: analyzeSection feature counts are accurate
       - `// Feature: semantic-layout-engine, Property 4: analyzeSection feature counts are accurate`
       - **Validates: Requirements 2.2–2.6**
-    - [ ] 3.2.2 Property 5: documentPosition is correctly assigned for all array lengths ≥ 1
+    - [x] 3.2.2 Property 5: documentPosition is correctly assigned for all array lengths ≥ 1
       - `// Feature: semantic-layout-engine, Property 5: documentPosition is correctly assigned`
       - **Validates: Requirements 2.7**
     - _Requirements: 2.2–2.7_
-  - [ ] 3.3 Add fast-check property tests to `src/features/document/intelligence/__tests__/classifySection.test.ts`
+  - [x] 3.3 Add fast-check property tests to `src/features/document/intelligence/__tests__/classifySection.test.ts`
     - Define `arbSectionFeatures()` arbitrary
-    - [ ] 3.3.1 Property 6: Hero role always assigned to first section
+    - [x] 3.3.1 Property 6: Hero role always assigned to first section
       - `// Feature: semantic-layout-engine, Property 6: Hero role is always assigned to the first section`
       - **Validates: Requirements 3.2**
-    - [ ] 3.3.2 Property 7: Classification rules are mutually consistent — role, emphasis, layoutHint, and visualWeight all satisfy the mapping table; visualWeight is integer in [1, 100]
+    - [x] 3.3.2 Property 7: Classification rules are mutually consistent — role, emphasis, layoutHint, and visualWeight all satisfy the mapping table; visualWeight is integer in [1, 100]
       - `// Feature: semantic-layout-engine, Property 7: Classification rules are mutually consistent`
       - **Validates: Requirements 3.3–3.9**
-    - [ ] 3.3.3 Property 8: featureIndex increments monotonically for non-hero sections
+    - [x] 3.3.3 Property 8: featureIndex increments monotonically for non-hero sections
       - `// Feature: semantic-layout-engine, Property 8: featureIndex increments monotonically for non-hero sections`
       - **Validates: Requirements 3.10**
-    - [ ] 3.3.4 Property 9: classifySection is idempotent
+    - [x] 3.3.4 Property 9: classifySection is idempotent
       - `// Feature: semantic-layout-engine, Property 9: classifySection is idempotent`
       - **Validates: Requirements 3.12, 15.3**
     - _Requirements: 3.2–3.12, 15.3_
-  - [ ] 3.4 Add fast-check property tests to `src/features/document/intelligence/__tests__/estimateSectionHeight.test.ts`
+  - [x] 3.4 Add fast-check property tests to `src/features/document/intelligence/__tests__/estimateSectionHeight.test.ts`
     - Define `arbClassifiedSection()` arbitrary
-    - [ ] 3.4.1 Property 10: estimateSectionHeight is always positive for non-empty sections
+    - [x] 3.4.1 Property 10: estimateSectionHeight is always positive for non-empty sections
       - `// Feature: semantic-layout-engine, Property 10: estimateSectionHeight is always positive`
       - **Validates: Requirements 4.1, 4.5**
-    - [ ] 3.4.2 Property 11: estimateSectionHeight is monotone with content — adding an ImageBlock strictly increases the estimate
+    - [x] 3.4.2 Property 11: estimateSectionHeight is monotone with content — adding an ImageBlock strictly increases the estimate
       - `// Feature: semantic-layout-engine, Property 11: estimateSectionHeight is monotone with content`
       - **Validates: Requirements 4.2, 4.3, 4.4**
     - _Requirements: 4.1–4.5_
-  - [ ] 3.5 Add fast-check property tests to `src/features/document/intelligence/__tests__/paginateSections.test.ts`
-    - [ ] 3.5.1 Property 12: Pagination preserves all sections — ordered concatenation of all page sections equals input
+  - [x] 3.5 Add fast-check property tests to `src/features/document/intelligence/__tests__/paginateSections.test.ts`
+    - [x] 3.5.1 Property 12: Pagination preserves all sections — ordered concatenation of all page sections equals input
       - `// Feature: semantic-layout-engine, Property 12: Pagination preserves all sections`
       - **Validates: Requirements 5.5, 5.7**
-    - [ ] 3.5.2 Property 13: No empty pages — every SectionPage contains at least one section
+    - [x] 3.5.2 Property 13: No empty pages — every SectionPage contains at least one section
       - `// Feature: semantic-layout-engine, Property 13: No empty pages`
       - **Validates: Requirements 5.4**
     - _Requirements: 5.4, 5.5, 5.7_
-  - [ ] 3.6 Add fast-check property tests to `src/features/document/intelligence/__tests__/pipeline.test.ts`
-    - [ ] 3.6.1 Property 14: Full pipeline determinism — two calls with same Block[] produce structurally equal SectionPage[] outputs
+  - [x] 3.6 Add fast-check property tests to `src/features/document/intelligence/__tests__/pipeline.test.ts`
+    - [x] 3.6.1 Property 14: Full pipeline determinism — two calls with same Block[] produce structurally equal SectionPage[] outputs
       - `// Feature: semantic-layout-engine, Property 14: Full pipeline determinism`
       - **Validates: Requirements 15.6**
     - _Requirements: 15.6_
@@ -235,7 +235,7 @@ Replace the fixed 3-column `buildLayoutUnits → paginate` pipeline with a secti
   - Run `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`, fix any issues, then commit
   - _Requirements: 13.1–13.6_
 
-- [-] 10. Final cleanup, checkpoint, and commit
+- [x] 10. Final cleanup, checkpoint, and commit
   - Run the full verification suite: `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`
   - Fix any remaining lint warnings, type errors, or test failures
   - Confirm `layout/` folder is untouched (no modifications to `buildLayoutUnits.ts`, `paginate.ts`, `estimateHeight.ts`, `measureHeights.ts`)

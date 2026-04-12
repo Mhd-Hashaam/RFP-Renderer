@@ -64,3 +64,34 @@ describe("runPipeline", () => {
     });
   });
 });
+
+// ─── Property-based tests ─────────────────────────────────────────────────────
+
+import * as fc from "fast-check";
+import type { Block as BlockType } from "../../model/types";
+
+function arbPipelineBlock(): fc.Arbitrary<BlockType> {
+  return fc.oneof(
+    fc.record({ id: fc.uuid(), type: fc.constant("heading" as const), level: fc.constantFrom(1 as const, 2 as const, 3 as const), content: fc.string({ minLength: 1, maxLength: 30 }) }),
+    fc.record({ id: fc.uuid(), type: fc.constant("paragraph" as const), content: fc.string({ minLength: 1, maxLength: 80 }) }),
+    fc.record({ id: fc.uuid(), type: fc.constant("list" as const), style: fc.constantFrom("ordered" as const, "unordered" as const), items: fc.array(fc.string({ minLength: 1, maxLength: 20 }), { minLength: 1, maxLength: 4 }) }),
+    fc.record({ id: fc.uuid(), type: fc.constant("image" as const), src: fc.constant("/img.webp"), alt: fc.string({ minLength: 1, maxLength: 10 }) }),
+  ) as fc.Arbitrary<BlockType>;
+}
+
+describe("runPipeline — property-based tests", () => {
+  // Feature: semantic-layout-engine, Property 14: Full pipeline determinism
+  it("Property 14: two calls with same Block[] produce structurally equal SectionPage[] outputs", () => {
+    fc.assert(
+      fc.property(
+        fc.array(arbPipelineBlock(), { minLength: 0, maxLength: 15 }),
+        (blocks) => {
+          const a = runPipeline(blocks, 1200);
+          const b = runPipeline(blocks, 1200);
+          expect(a).toEqual(b);
+        },
+      ),
+      { numRuns: 100 },
+    );
+  });
+});

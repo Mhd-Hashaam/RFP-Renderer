@@ -97,3 +97,102 @@ describe("groupIntoSections", () => {
     expect(sections[0].content).toHaveLength(3);
   });
 });
+
+// ─── Arbitraries ─────────────────────────────────────────────────────────────
+
+import * as fc from "fast-check";
+import type { Block as BlockType } from "../../model/types";
+
+/** Generates a random Block across all five subtypes with unique-ish ids. */
+function arbBlock(): fc.Arbitrary<BlockType> {
+  return fc.oneof(
+    fc.record({
+      id: fc.uuid(),
+      type: fc.constant("heading" as const),
+      level: fc.constantFrom(1 as const, 2 as const, 3 as const),
+      content: fc.string({ minLength: 1, maxLength: 40 }),
+    }),
+    fc.record({
+      id: fc.uuid(),
+      type: fc.constant("paragraph" as const),
+      content: fc.string({ minLength: 1, maxLength: 100 }),
+    }),
+    fc.record({
+      id: fc.uuid(),
+      type: fc.constant("list" as const),
+      style: fc.constantFrom("ordered" as const, "unordered" as const),
+      items: fc.array(fc.string({ minLength: 1, maxLength: 30 }), { minLength: 1, maxLength: 5 }),
+    }),
+    fc.record({
+      id: fc.uuid(),
+      type: fc.constant("image" as const),
+      src: fc.constant("/img.webp"),
+      alt: fc.string({ minLength: 1, maxLength: 20 }),
+      caption: fc.option(fc.string({ minLength: 1, maxLength: 30 }), { nil: undefined }),
+    }),
+    fc.record({
+      id: fc.uuid(),
+      type: fc.constant("group" as const),
+      children: fc.array(
+        fc.record({
+          id: fc.uuid(),
+          type: fc.constant("paragraph" as const),
+          content: fc.string({ minLength: 1, maxLength: 30 }),
+        }),
+        { minLength: 0, maxLength: 3 },
+      ),
+    }),
+  ) as fc.Arbitrary<BlockType>;
+}
+
+/** Generates a random Block[] of length 0–20. */
+function arbBlockArray(): fc.Arbitrary<BlockType[]> {
+  return fc.array(arbBlock(), { minLength: 0, maxLength: 20 });
+}
+
+// ─── Property-based tests ─────────────────────────────────────────────────────
+
+describe("groupIntoSections — property-based tests", () => {
+  // Feature: semantic-layout-engine, Property 1: Section grouping covers all blocks
+  it("Property 1: union of all section blocks equals input array (same elements, same order)", () => {
+    fc.assert(
+      fc.property(arbBlockArray(), (blocks) => {
+        const sections = groupIntoSections(blocks);
+        const outputBlocks = sections.flatMap((s) =>
+          s.heading ? [s.heading, ...s.content] : s.content,
+        );
+        expect(outputBlocks.map((b) => b.id)).toEqual(blocks.map((b) => b.id));
+      }),
+      { numRuns: 100 },
+    );
+  });
+
+  // Feature: semantic-layout-engine, Property 2: Section id derivation
+  it("Property 2: every section id equals heading.id or content[0].id", () => {
+    fc.assert(
+      fc.property(arbBlockArray(), (blocks) => {
+        const sections = groupIntoSections(blocks);
+        for (const section of sections) {
+          if (section.heading !== null) {
+            expect(section.id).toBe(section.heading.id);
+          } else if (section.content.length > 0) {
+            expect(section.id).toBe(section.content[0].id);
+          }
+        }
+      }),
+      { numRuns: 100 },
+    );
+  });
+
+  // Feature: semantic-layout-engine, Property 3: groupIntoSections determinism
+  it("Property 3: two calls with same input produce structurally equal output", () => {
+    fc.assert(
+      fc.property(arbBlockArray(), (blocks) => {
+        const a = groupIntoSections(blocks);
+        const b = groupIntoSections(blocks);
+        expect(a).toEqual(b);
+      }),
+      { numRuns: 100 },
+    );
+  });
+});

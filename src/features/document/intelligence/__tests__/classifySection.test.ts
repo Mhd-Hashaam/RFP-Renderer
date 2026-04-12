@@ -143,3 +143,85 @@ describe("classifySection", () => {
     });
   });
 });
+
+// ─── Property-based tests ─────────────────────────────────────────────────────
+
+import * as fc from "fast-check";
+import type { SectionFeatures as SectionFeaturesType } from "../../model/types";
+
+function arbSectionFeatures(position?: "first" | "middle" | "last"): fc.Arbitrary<SectionFeaturesType> {
+  return fc.record({
+    headingLevel: fc.option(fc.constantFrom(1 as const, 2 as const, 3 as const), { nil: null }),
+    imageCount: fc.nat({ max: 6 }),
+    paragraphCount: fc.nat({ max: 4 }),
+    listCount: fc.nat({ max: 3 }),
+    totalTextLength: fc.nat({ max: 2000 }),
+    documentPosition: position
+      ? fc.constant(position)
+      : fc.constantFrom("first" as const, "middle" as const, "last" as const),
+  });
+}
+
+describe("classifySection — property-based tests", () => {
+  // Feature: semantic-layout-engine, Property 6: Hero role is always assigned to the first section
+  it("Property 6: first section is always hero regardless of content", () => {
+    fc.assert(
+      fc.property(arbSectionFeatures("first"), fc.nat({ max: 5 }), (features, featureIndex) => {
+        const result = classifySection(makeSection(), features, featureIndex);
+        expect(result.role).toBe("hero");
+      }),
+      { numRuns: 100 },
+    );
+  });
+
+  // Feature: semantic-layout-engine, Property 7: Classification rules are mutually consistent
+  it("Property 7: role, emphasis, layoutHint, and visualWeight satisfy the mapping table", () => {
+    fc.assert(
+      fc.property(arbSectionFeatures(), fc.nat({ max: 10 }), (features, featureIndex) => {
+        const result = classifySection(makeSection(), features, featureIndex);
+
+        // emphasis mapping
+        if (result.role === "hero") expect(result.intent.emphasis).toBe("high");
+        if (result.role === "feature") expect(result.intent.emphasis).toBe("medium");
+        if (result.role === "gallery") expect(result.intent.emphasis).toBe("medium");
+        if (result.role === "content") expect(result.intent.emphasis).toBe("low");
+
+        // layoutHint mapping
+        if (result.role === "hero") expect(result.intent.layoutHint).toBe("wide");
+        if (result.role === "feature") expect(result.intent.layoutHint).toBe("balanced");
+        if (result.role === "gallery") expect(result.intent.layoutHint).toBe("balanced");
+        if (result.role === "content") expect(result.intent.layoutHint).toBe("compact");
+
+        // visualWeight is integer in [1, 100]
+        expect(result.intent.visualWeight).toBeGreaterThanOrEqual(1);
+        expect(result.intent.visualWeight).toBeLessThanOrEqual(100);
+        expect(Number.isInteger(result.intent.visualWeight)).toBe(true);
+      }),
+      { numRuns: 100 },
+    );
+  });
+
+  // Feature: semantic-layout-engine, Property 8: featureIndex increments monotonically for non-hero sections
+  it("Property 8: featureIndex passed in is preserved on the ClassifiedSection", () => {
+    fc.assert(
+      fc.property(arbSectionFeatures("middle"), fc.nat({ max: 20 }), (features, featureIndex) => {
+        const result = classifySection(makeSection(), features, featureIndex);
+        expect(result.featureIndex).toBe(featureIndex);
+      }),
+      { numRuns: 100 },
+    );
+  });
+
+  // Feature: semantic-layout-engine, Property 9: classifySection is idempotent
+  it("Property 9: classifying twice with same inputs produces equal output", () => {
+    fc.assert(
+      fc.property(arbSectionFeatures(), fc.nat({ max: 10 }), (features, featureIndex) => {
+        const section = makeSection("s-idem");
+        const a = classifySection(section, features, featureIndex);
+        const b = classifySection(section, features, featureIndex);
+        expect(a).toEqual(b);
+      }),
+      { numRuns: 100 },
+    );
+  });
+});
