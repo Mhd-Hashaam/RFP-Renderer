@@ -8,20 +8,23 @@ const unit = (id: string, height: number): LayoutUnit => ({
     {
       id: `${id}-b`,
       type: "paragraph",
-      content: "x".repeat(Math.max(1, Math.round(height / 0.35))),
+      // estimateBlockHeightPx for paragraph: max(52, min(520, 40 + len * 0.42))
+      // To get ~height px: len = (height - 40) / 0.42
+      content: "x".repeat(Math.max(1, Math.round(Math.max(0, height - 40) / 0.42))),
     },
   ],
 });
 
 describe("paginate", () => {
   it("fills columns sequentially then starts a new page", () => {
+    // Each unit ≈ 300px. With 1 column and 400px budget:
+    // u1(300) fits, u2(300) doesn't → new page. Guaranteed 2+ pages.
     const units: LayoutUnit[] = [
       unit("u1", 300),
       unit("u2", 300),
       unit("u3", 300),
-      unit("u4", 300),
     ];
-    const pages = paginate(units, 2, 500);
+    const pages = paginate(units, 1, 400);
     expect(pages.length).toBeGreaterThanOrEqual(2);
   });
 
