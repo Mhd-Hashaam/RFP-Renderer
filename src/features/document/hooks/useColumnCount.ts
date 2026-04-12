@@ -1,32 +1,44 @@
 "use client";
 
-import { COLUMN_COUNT_LG, COLUMN_COUNT_MD, COLUMN_COUNT_SM } from "../model/constants";
 import { useEffect, useState } from "react";
+import type { DeviceCapability } from "../model/types";
 
 /**
- * Responsive column count for the document grid.
+ * Returns the current device capability based on viewport width.
+ *
+ * Breakpoints:
+ *   < 768px   → "mobile"
+ *   768–1279px → "tablet"
+ *   ≥ 1280px  → "desktop"
+ *
+ * SSR-safe: defaults to "desktop" on the server.
  */
-export function useColumnCount(): number {
-  const [count, setCount] = useState(COLUMN_COUNT_LG);
+export function useColumnCount(): DeviceCapability {
+  const [capability, setCapability] = useState<DeviceCapability>("desktop");
 
   useEffect(() => {
-    const md = window.matchMedia("(max-width: 1023px)");
-    const sm = window.matchMedia("(max-width: 639px)");
+    const mobile = window.matchMedia("(max-width: 767px)");
+    const desktop = window.matchMedia("(min-width: 1280px)");
 
     const update = () => {
-      if (sm.matches) setCount(COLUMN_COUNT_SM);
-      else if (md.matches) setCount(COLUMN_COUNT_MD);
-      else setCount(COLUMN_COUNT_LG);
+      if (mobile.matches) {
+        setCapability("mobile");
+      } else if (desktop.matches) {
+        setCapability("desktop");
+      } else {
+        setCapability("tablet");
+      }
     };
 
     update();
-    md.addEventListener("change", update);
-    sm.addEventListener("change", update);
+    mobile.addEventListener("change", update);
+    desktop.addEventListener("change", update);
+
     return () => {
-      md.removeEventListener("change", update);
-      sm.removeEventListener("change", update);
+      mobile.removeEventListener("change", update);
+      desktop.removeEventListener("change", update);
     };
   }, []);
 
-  return count;
+  return capability;
 }

@@ -29,7 +29,7 @@ export function DocumentApp({ initialBlocks }: Props) {
   const updateParagraph = useDocumentStore((s) => s.updateParagraph);
   const updateListItem = useDocumentStore((s) => s.updateListItem);
 
-  const columnCount = useColumnCount();
+  const device = useColumnCount();
   const pdfRef = useRef<HTMLDivElement | null>(null);
   const [exporting, setExporting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -97,7 +97,7 @@ export function DocumentApp({ initialBlocks }: Props) {
         {/* Sidebar footer */}
         <div className="border-t border-white/10 px-5 py-3">
           <div className="text-[10px] text-white/30">
-            {resolvedBlocks.length} blocks · {columnCount} col{columnCount !== 1 ? "s" : ""}
+            {resolvedBlocks.length} blocks · {device}
           </div>
         </div>
       </aside>
@@ -144,7 +144,7 @@ export function DocumentApp({ initialBlocks }: Props) {
           <div ref={pdfRef} className="mx-auto max-w-[1400px] space-y-8 px-6 py-8">
             <DocumentRenderer
               blocks={resolvedBlocks}
-              columnCount={columnCount}
+              columnCount={device === "desktop" ? 3 : device === "tablet" ? 2 : 1}
               onUpdateHeading={updateHeading}
               onUpdateParagraph={updateParagraph}
               onUpdateListItem={updateListItem}
