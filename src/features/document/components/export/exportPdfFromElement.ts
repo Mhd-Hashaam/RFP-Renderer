@@ -8,8 +8,9 @@ const A4_HEIGHT_MM = 297;
  * Walks every element in the subtree and inlines computed rgb() values for
  * color properties so html2canvas (which can't parse oklch/lab/color()) doesn't choke.
  * getComputedStyle always returns rgb/rgba in Chromium even for oklch source values.
+ * Returns a cleanup function that restores original inline styles.
  */
-function inlineComputedColors(root: HTMLElement): void {
+function inlineComputedColors(root: HTMLElement): () => void {
   const colorProps = [
     "color",
     "backgroundColor",
@@ -20,16 +21,26 @@ function inlineComputedColors(root: HTMLElement): void {
     "outlineColor",
   ] as const;
 
+  const restorers: Array<() => void> = [];
   const all = [root, ...Array.from(root.querySelectorAll<HTMLElement>("*"))];
+
   for (const el of all) {
     const cs = window.getComputedStyle(el);
     for (const prop of colorProps) {
-      const val = cs[prop as keyof CSSStyleDeclaration] as string;
-      if (val) {
-        (el.style as unknown as Record<string, string>)[prop] = val;
-      }
+      const resolved = cs[prop as keyof CSSStyleDeclaration] as string;
+      if (!resolved) continue;
+      const original = (el.style as unknown as Record<string, string>)[prop];
+      (el.style as unknown as Record<string, string>)[prop] = resolved;
+      const captured = el;
+      const capturedProp = prop;
+      const capturedOriginal = original;
+      restorers.push(() => {
+        (captured.style as unknown as Record<string, string>)[capturedProp] = capturedOriginal;
+      });
     }
   }
+
+  return () => restorers.forEach((r) => r());
 }
 
 /**
@@ -45,20 +56,26 @@ async function captureElement(
   // Two rAFs: first lets the DOM update, second lets the browser paint
   await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
 
-  const canvas = await html2canvas(el, {
-    scale: 2,
-    useCORS: true,
-    allowTaint: false,
-    backgroundColor: bgColor,
-    logging: false,
-    height: el.scrollHeight,
-    width: el.scrollWidth,
-    windowWidth: el.scrollWidth,
-    windowHeight: el.scrollHeight,
-    onclone: (_doc, clonedEl) => {
-      inlineComputedColors(clonedEl);
-    },
-  });
+  // Inline computed rgb() values on the live element BEFORE html2canvas
+  // parses it — this resolves oklch/lab/color() to rgb() which html2canvas understands.
+  const restoreColors = inlineComputedColors(el);
+
+  let canvas: Awaited<ReturnType<typeof html2canvas>>;
+  try {
+    canvas = await html2canvas(el, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: bgColor,
+      logging: false,
+      height: el.scrollHeight,
+      width: el.scrollWidth,
+      windowWidth: el.scrollWidth,
+      windowHeight: el.scrollHeight,
+    });
+  } finally {
+    restoreColors();
+  }
 
   return {
     dataUrl: canvas.toDataURL("image/png"),
