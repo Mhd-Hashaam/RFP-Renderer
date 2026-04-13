@@ -31,7 +31,7 @@ export function FeatureSection({
   const textCol = (
     <div className="flex flex-col justify-center gap-4">
       {section.heading && (
-        <h2 className="font-heading text-2xl font-semibold tracking-tight text-zinc-100">
+        <h2 className="font-heading text-2xl font-semibold tracking-[-0.01em] leading-snug text-foreground">
           <EditableText
             value={section.heading.content}
             onCommit={(v) => onUpdateHeading(section.heading!.id, v)}
@@ -39,7 +39,7 @@ export function FeatureSection({
           />
         </h2>
       )}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {nonImageBlocks.map((block) => (
           <BlockRenderer
             key={block.id}
@@ -55,22 +55,20 @@ export function FeatureSection({
 
   const imageCol = featureImage ? (
     <figure className="space-y-2">
-      <div
-        className="relative w-full overflow-hidden rounded-lg border border-white/10 shadow-lg"
-        style={{ aspectRatio: "16/9" }}
-      >
+      <div className="relative w-full overflow-hidden rounded-lg border border-white/10 shadow-lg">
         <Image
           src={featureImage.src}
           alt={featureImage.alt}
-          fill
-          className="object-cover transition-transform duration-500 hover:scale-[1.02]"
+          width={800}
+          height={600}
+          className="h-auto w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
           sizes="(max-width: 768px) 100vw, 50vw"
           unoptimized
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
       </div>
       {featureImage.caption && (
-        <figcaption className="text-zinc-500 text-xs italic px-0.5">
+        <figcaption className="text-muted-foreground text-xs italic px-0.5">
           {featureImage.caption}
         </figcaption>
       )}

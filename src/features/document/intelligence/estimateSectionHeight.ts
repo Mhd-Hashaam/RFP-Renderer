@@ -48,6 +48,12 @@ export function estimateSectionHeight(section: ClassifiedSection): number {
           0,
         );
         break;
+      case "meta":
+        totalTextLength += block.items.reduce(
+          (s, item) => s + item.label.length + item.value.length,
+          0,
+        );
+        break;
       default: {
         const _never: never = block;
         void _never;

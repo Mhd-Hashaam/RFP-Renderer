@@ -24,7 +24,7 @@ export function ContentSection({
       className="mb-16 max-w-prose"
     >
       {section.heading && (
-        <h2 className="mb-3 font-heading text-xl font-semibold tracking-tight text-zinc-100">
+        <h2 className="mb-4 font-heading text-xl font-semibold tracking-[-0.01em] leading-snug text-foreground">
           <EditableText
             value={section.heading.content}
             onCommit={(v) => onUpdateHeading(section.heading!.id, v)}
@@ -33,7 +33,7 @@ export function ContentSection({
         </h2>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {section.content.map((block) => (
           <BlockRenderer
             key={block.id}

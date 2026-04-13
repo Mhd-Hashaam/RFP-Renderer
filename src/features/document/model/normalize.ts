@@ -38,6 +38,12 @@ function normalizeBlock(raw: RawBlockInput): Block {
         alt: raw.alt,
         caption: raw.caption,
       };
+    case "meta":
+      return {
+        id,
+        type: "meta",
+        items: raw.items.map((item) => ({ label: item.label, value: item.value })),
+      };
     case "group":
       return {
         id,

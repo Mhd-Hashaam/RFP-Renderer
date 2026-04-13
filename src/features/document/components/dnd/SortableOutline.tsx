@@ -17,44 +17,38 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useMemo, useEffect, useState } from "react";
-import type { Block } from "@/features/document/model/types";
-import { Button } from "@/components/ui/button";
+import type { Block, Section } from "@/features/document/model/types";
+import { groupIntoSections } from "@/features/document/intelligence/groupIntoSections";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp, GripVertical } from "lucide-react";
+import { GripVertical } from "lucide-react";
 
-function previewBlock(block: Block): string {
-  switch (block.type) {
-    case "heading":
-      return block.content || "Heading";
-    case "paragraph":
-      return block.content.slice(0, 60) || "Paragraph";
-    case "list":
-      return `List (${block.items.length} items)`;
-    case "image":
-      return block.alt || "Image";
-    case "group":
-      return "Group";
-    default: {
-      const _never: never = block;
-      return _never;
-    }
+/** Returns a short summary of what's inside a section */
+function sectionMeta(section: Section): { label: string; icons: string[] } {
+  const icons: string[] = [];
+  let imageCount = 0;
+  let paraCount = 0;
+  let listCount = 0;
+
+  for (const block of section.content) {
+    if (block.type === "image") imageCount++;
+    else if (block.type === "paragraph") paraCount++;
+    else if (block.type === "list") listCount++;
   }
+
+  if (imageCount) icons.push(`${imageCount} image${imageCount > 1 ? "s" : ""}`);
+  if (paraCount) icons.push(`${paraCount} para${paraCount > 1 ? "s" : ""}`);
+  if (listCount) icons.push(`${listCount} list${listCount > 1 ? "s" : ""}`);
+
+  const label = section.heading?.content ?? "Untitled section";
+  return { label, icons };
 }
 
-const typeColor: Record<Block["type"], string> = {
-  heading: "bg-violet-500/15 text-violet-400",
-  paragraph: "bg-sky-500/15 text-sky-400",
-  list: "bg-emerald-500/15 text-emerald-400",
-  image: "bg-amber-500/15 text-amber-400",
-  group: "bg-rose-500/15 text-rose-400",
-};
-
-function SortableRow({
-  block,
-  onMove,
+function SortableSection({
+  section,
+  index,
 }: {
-  block: Block;
-  onMove: (id: string, direction: "up" | "down") => void;
+  section: Section;
+  index: number;
 }) {
   const {
     attributes,
@@ -63,90 +57,78 @@ function SortableRow({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: block.id });
+  } = useSortable({ id: section.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
+  const { label, icons } = sectionMeta(section);
+  const isH1 = section.heading?.level === 1;
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group/row flex items-center gap-2 rounded-lg px-2 py-2 transition-all duration-150",
-        "border border-white/5 bg-white/5 backdrop-blur-sm",
+        "group flex items-center gap-3 rounded-xl px-3 py-3 transition-all duration-150",
+        "border border-border bg-card",
         isDragging
-          ? "shadow-lg ring-1 ring-white/20 opacity-80 scale-[1.02]"
-          : "hover:bg-white/10 hover:border-white/10",
+          ? "shadow-xl ring-2 ring-foreground/20 opacity-90 scale-[1.02] z-50"
+          : "hover:border-foreground/20 hover:bg-accent",
       )}
     >
-      {/* Drag handle */}
-      <button
-        type="button"
-        className="text-muted-foreground/40 hover:text-muted-foreground cursor-grab active:cursor-grabbing touch-manipulation rounded-sm p-1 transition-colors"
-        aria-label={`Drag to reorder: ${previewBlock(block)}`}
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="size-3.5" />
-      </button>
+      {/* Index badge */}
+      <span className="shrink-0 flex size-6 items-center justify-center rounded-md bg-foreground/8 text-[10px] font-semibold text-muted-foreground tabular-nums">
+        {index + 1}
+      </span>
 
       {/* Content */}
       <div className="min-w-0 flex-1">
-        <span
-          className={cn(
-            "mb-0.5 inline-block rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest",
-            typeColor[block.type],
-          )}
-        >
-          {block.type}
-        </span>
-        <div className="truncate text-xs font-medium text-white/70">
-          {previewBlock(block)}
+        <div className={cn(
+          "truncate text-sm text-foreground",
+          isH1 ? "font-semibold" : "font-medium",
+        )}>
+          {label}
         </div>
+        {icons.length > 0 && (
+          <div className="mt-0.5 text-[11px] text-muted-foreground">
+            {icons.join(" · ")}
+          </div>
+        )}
       </div>
 
-      {/* Mobile up/down */}
-      <div className="flex shrink-0 flex-col gap-0.5 sm:hidden">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-6 cursor-pointer"
-          aria-label="Move section up"
-          onClick={() => onMove(block.id, "up")}
-        >
-          <ChevronUp className="size-3" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-6 cursor-pointer"
-          aria-label="Move section down"
-          onClick={() => onMove(block.id, "down")}
-        >
-          <ChevronDown className="size-3" />
-        </Button>
-      </div>
+      {/* Drag handle */}
+      <button
+        type="button"
+        className={cn(
+          "shrink-0 cursor-grab active:cursor-grabbing rounded-md p-1.5 transition-colors",
+          "text-muted-foreground/40 hover:text-muted-foreground hover:bg-foreground/5",
+        )}
+        aria-label={`Drag to reorder: ${label}`}
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="size-4" />
+      </button>
     </div>
   );
 }
 
 type Props = {
   blocks: Block[];
-  onReorder: (activeId: string, overId: string) => void;
+  onReorder: (activeSectionId: string, overSectionId: string) => void;
   onMove: (id: string, direction: "up" | "down") => void;
 };
 
-export function SortableOutline({ blocks, onReorder, onMove }: Props) {
-  // Mount guard — prevents @dnd-kit aria-describedby SSR/client mismatch
+export function SortableOutline({ blocks, onReorder }: Props) {
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMounted(true); }, []);
 
-  const ids = useMemo(() => blocks.map((b) => b.id), [blocks]);
+  const sections = useMemo(() => groupIntoSections(blocks), [blocks]);
+  const ids = useMemo(() => sections.map((s) => s.id), [sections]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -161,30 +143,27 @@ export function SortableOutline({ blocks, onReorder, onMove }: Props) {
 
   if (!mounted) {
     return (
-      <div className="space-y-2">
-        {blocks.map((block) => (
-          <div
-            key={block.id}
-            className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/5 px-2 py-2"
-          >
-            <div className="text-muted-foreground/40 p-1">
-              <GripVertical className="size-3.5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <span
-                className={cn(
-                  "mb-0.5 inline-block rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest",
-                  typeColor[block.type],
-                )}
-              >
-                {block.type}
+      <div className="space-y-2 p-1">
+        {sections.map((section, i) => {
+          const { label, icons } = sectionMeta(section);
+          return (
+            <div
+              key={section.id}
+              className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-3"
+            >
+              <span className="shrink-0 flex size-6 items-center justify-center rounded-md bg-foreground/8 text-[10px] font-semibold text-muted-foreground">
+                {i + 1}
               </span>
-              <div className="truncate text-xs font-medium text-white/70">
-                {previewBlock(block)}
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium text-foreground">{label}</div>
+                {icons.length > 0 && (
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">{icons.join(" · ")}</div>
+                )}
               </div>
+              <GripVertical className="size-4 shrink-0 text-muted-foreground/30" />
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }
@@ -196,9 +175,13 @@ export function SortableOutline({ blocks, onReorder, onMove }: Props) {
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-        <div className="space-y-1.5">
-          {blocks.map((block) => (
-            <SortableRow key={block.id} block={block} onMove={onMove} />
+        <div className="space-y-2 p-1">
+          {sections.map((section, i) => (
+            <SortableSection
+              key={section.id}
+              section={section}
+              index={i}
+            />
           ))}
         </div>
       </SortableContext>

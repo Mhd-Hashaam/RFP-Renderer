@@ -5,6 +5,7 @@ import { GroupBlock } from "./blocks/GroupBlock";
 import { HeadingBlock } from "./blocks/HeadingBlock";
 import { ImageBlock } from "./blocks/ImageBlock";
 import { ListBlock } from "./blocks/ListBlock";
+import { MetaBlock } from "./blocks/MetaBlock";
 import { ParagraphBlock } from "./blocks/ParagraphBlock";
 
 type Props = {
@@ -32,6 +33,8 @@ export function BlockRenderer({
       return <ListBlock block={block} onUpdateItem={onUpdateListItem} />;
     case "image":
       return <ImageBlock block={block} hero={hero} />;
+    case "meta":
+      return <MetaBlock block={block} />;
     case "group":
       return (
         <GroupBlock

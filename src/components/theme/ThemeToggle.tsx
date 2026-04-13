@@ -6,9 +6,15 @@ import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ThemeToggle() {
-  const { theme, toggle } = useTheme();
+  const { theme, mounted, toggle } = useTheme();
   const isDark = theme === "dark";
   const btnRef = useRef<HTMLButtonElement>(null);
+
+  if (!mounted) {
+    return (
+      <div className="relative flex h-8 w-14 items-center rounded-full border border-border bg-muted p-1" />
+    );
+  }
 
   return (
     <button
@@ -23,27 +29,36 @@ export function ThemeToggle() {
         "hover:opacity-90",
         isDark
           ? "border-white/10 bg-zinc-800"
-          : "border-stone-300 bg-stone-200",
+          : "border-stone-500 bg-stone-300",
       )}
     >
+      {/* Sun icon — prominent in light mode */}
       <Sun
         className={cn(
-          "absolute left-1.5 size-4 transition-all duration-300",
-          isDark ? "opacity-25 scale-75" : "opacity-100 scale-100 text-amber-600",
+          "absolute left-1.5 size-3.5 transition-all duration-300",
+          isDark
+            ? "opacity-20 scale-75 text-white"
+            : "opacity-100 scale-100 text-amber-600",
         )}
+        aria-hidden="true"
       />
+      {/* Moon icon — prominent in dark mode */}
       <Moon
         className={cn(
-          "absolute right-1.5 size-4 transition-all duration-300",
-          isDark ? "opacity-100 scale-100 text-indigo-300" : "opacity-25 scale-75",
+          "absolute right-1.5 size-3.5 transition-all duration-300",
+          isDark
+            ? "opacity-100 scale-100 text-indigo-300"
+            : "opacity-60 scale-75 text-stone-700",
         )}
+        aria-hidden="true"
       />
+      {/* Sliding thumb */}
       <span
         className={cn(
-          "absolute size-6 rounded-full shadow-md transition-all duration-300 ease-in-out",
+          "absolute size-5 rounded-full transition-all duration-300 ease-in-out",
           isDark
-            ? "left-[calc(100%-1.75rem)] bg-zinc-700 ring-1 ring-white/10"
-            : "left-1 bg-stone-200 ring-1 ring-stone-400",
+            ? "left-[calc(100%-1.625rem)] bg-zinc-600 shadow-md ring-1 ring-white/10"
+            : "left-1 bg-stone-800 shadow-sm",
         )}
       />
     </button>

@@ -28,17 +28,17 @@ export function HeroSection({
   return (
     <section
       data-section-id={section.id}
-      className="mb-16"
+      className="mb-20 pt-6"
     >
       <div
         className={cn(
-          isDesktop && heroImage ? "grid grid-cols-3 gap-8 items-start" : "flex flex-col gap-6",
+          isDesktop && heroImage ? "grid grid-cols-5 gap-10 items-start" : "flex flex-col gap-8",
         )}
       >
-        {/* Text column — spans 2 of 3 cols on desktop */}
-        <div className={cn(isDesktop && heroImage ? "col-span-2" : "w-full")}>
+        {/* Text column — 3 of 5 cols on desktop */}
+        <div className={cn(isDesktop && heroImage ? "col-span-3" : "w-full")}>
           {section.heading && (
-            <h1 className="mb-4 font-heading text-4xl font-bold tracking-tight text-zinc-100 lg:text-5xl">
+            <h1 className="mb-6 font-heading text-5xl font-bold tracking-[-0.02em] leading-tight text-foreground lg:text-6xl">
               <EditableText
                 value={section.heading.content}
                 onCommit={(v) => onUpdateHeading(section.heading!.id, v)}
@@ -47,7 +47,7 @@ export function HeroSection({
             </h1>
           )}
 
-          <div className="space-y-4">
+          <div className="space-y-5 max-w-[60ch]">
             {nonImageBlocks.map((block) => (
               <BlockRenderer
                 key={block.id}
@@ -60,25 +60,24 @@ export function HeroSection({
           </div>
         </div>
 
-        {/* Hero image — 1 col on desktop, full width on mobile */}
+        {/* Hero image — 2 of 5 cols, editorial offset */}
         {heroImage && (
-          <figure className={cn(isDesktop ? "col-span-1" : "w-full", "space-y-2")}>
-            <div className="relative w-full overflow-hidden rounded-xl border border-white/10 shadow-2xl"
-              style={{ aspectRatio: "4/3" }}
-            >
+          <figure className={cn(isDesktop ? "col-span-2 translate-x-2" : "w-full", "space-y-2")}>
+            <div className="relative w-full overflow-hidden rounded-xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.6)]">
               <Image
                 src={heroImage.src}
                 alt={heroImage.alt}
-                fill
-                className="object-cover transition-transform duration-500 hover:scale-[1.02]"
-                sizes="(max-width: 768px) 100vw, 33vw"
+                width={800}
+                height={1200}
+                className="h-auto w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
+                sizes="(max-width: 768px) 100vw, 40vw"
                 priority
                 unoptimized
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
             </div>
             {heroImage.caption && (
-              <figcaption className="text-zinc-500 text-xs italic px-0.5">
+              <figcaption className="text-muted-foreground text-xs italic px-0.5">
                 {heroImage.caption}
               </figcaption>
             )}

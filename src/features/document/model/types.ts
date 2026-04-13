@@ -36,12 +36,24 @@ export type GroupBlock = {
   children: Block[];
 };
 
+export type MetaItem = {
+  label: string;
+  value: string;
+};
+
+export type MetaBlock = {
+  id: string;
+  type: "meta";
+  items: MetaItem[];
+};
+
 export type Block =
   | HeadingBlock
   | ParagraphBlock
   | ListBlock
   | ImageBlock
-  | GroupBlock;
+  | GroupBlock
+  | MetaBlock;
 
 export type BodyBlockType = "paragraph" | "list" | "image" | "group";
 
@@ -60,6 +72,7 @@ export type RawBlockInput =
   | Omit<ParagraphBlock, "id"> & { id?: string }
   | Omit<ListBlock, "id"> & { id?: string }
   | Omit<ImageBlock, "id"> & { id?: string }
+  | Omit<MetaBlock, "id"> & { id?: string }
   | (Omit<GroupBlock, "id" | "children"> & {
       id?: string;
       children: RawBlockInput[];

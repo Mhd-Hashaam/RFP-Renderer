@@ -18,13 +18,13 @@ export function ImageBlock({ block, hero = false }: Props) {
             ? "relative w-full overflow-hidden rounded-xl border border-white/10 shadow-lg"
             : "relative w-full overflow-hidden rounded-lg border border-white/10"
         }
-        style={{ aspectRatio: hero ? "16/9" : "4/3" }}
       >
         <Image
           src={block.src}
           alt={block.alt}
-          fill
-          className="object-cover transition-transform duration-500 hover:scale-[1.02]"
+          width={800}
+          height={600}
+          className="h-auto w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={hero}
           unoptimized

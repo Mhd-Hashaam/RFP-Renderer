@@ -27,7 +27,7 @@ export function HeadingBlock({ block, onUpdateContent }: Props) {
       <h2 className={cn(
         "mt-5 mb-2 font-heading text-xl font-semibold tracking-tight text-foreground",
         "flex items-center gap-2",
-        "before:content-['—'] before:text-white/20 before:font-normal before:text-sm",
+        "before:content-['—'] before:text-foreground/20 before:font-normal before:text-sm",
       )}>
         <EditableText
           value={block.content}

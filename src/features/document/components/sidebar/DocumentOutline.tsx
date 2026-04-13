@@ -65,7 +65,7 @@ export function DocumentOutline({ sections }: Props) {
 
   if (headingSections.length === 0) {
     return (
-      <p className="text-white/30 text-xs px-3 py-2">No headings</p>
+      <p className="text-muted-foreground/50 text-xs px-3 py-2">No headings</p>
     );
   }
 
@@ -82,11 +82,11 @@ export function DocumentOutline({ sections }: Props) {
                 type="button"
                 onClick={() => scrollToSection(section.id)}
                 className={cn(
-                  "w-full cursor-pointer rounded-md px-3 py-1.5 text-left text-xs transition-all duration-150",
+                  "w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition-all duration-150",
                   isH1 ? "font-semibold" : "font-normal",
                   isActive
-                    ? "border-l-2 border-white/60 pl-2.5 text-white"
-                    : "text-white/50 hover:text-white/80 hover:bg-white/5",
+                    ? "border-l-2 border-foreground/60 bg-foreground/5 pl-2.5 text-foreground"
+                    : "text-foreground/60 hover:bg-foreground/5 hover:text-foreground",
                 )}
               >
                 {section.heading!.content}

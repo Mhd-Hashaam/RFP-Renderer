@@ -7,11 +7,13 @@ type Theme = "dark" | "light";
 
 type ThemeContextValue = {
   theme: Theme;
+  mounted: boolean;
   toggle: (originEl?: HTMLElement) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue>({
   theme: "dark",
+  mounted: false,
   toggle: () => {},
 });
 
@@ -20,15 +22,17 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "dark";
-    return (localStorage.getItem("rfp-theme") as Theme) ?? "dark";
-  });
+  // Always start with "dark" to match SSR — sync from localStorage after mount
+  const [theme, setTheme] = useState<Theme>("dark");
+  const [mounted, setMounted] = useState(false);
   const rippleRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    applyTheme(theme);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const saved = (localStorage.getItem("rfp-theme") as Theme) ?? "dark";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTheme(saved);
+    applyTheme(saved);
+    setMounted(true);
   }, []);
 
   const toggle = (originEl?: HTMLElement) => {
@@ -41,7 +45,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggle }}>
+    <ThemeContext.Provider value={{ theme, mounted, toggle }}>
       {children}
       <div ref={rippleRef} id="theme-ripple" aria-hidden="true" />
     </ThemeContext.Provider>

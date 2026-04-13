@@ -69,7 +69,7 @@ Replace the fixed 3-column `buildLayoutUnits → paginate` pipeline with a secti
   - Run `npm run lint && npx tsc --noEmit && npx vitest run && npm run build`, fix any issues, then commit
   - _Requirements: 1–5, 15_
 
-- [-] 3. Intelligence module — property-based tests
+- [x] 3. Intelligence module — property-based tests
   - [x] 3.1 Add fast-check property tests to `src/features/document/intelligence/__tests__/groupIntoSections.test.ts`
     - Define `arbBlock()` arbitrary covering all five block subtypes with random ids and content
     - Define `arbBlockArray()` arbitrary (length 0–20)

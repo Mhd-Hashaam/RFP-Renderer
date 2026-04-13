@@ -132,6 +132,13 @@
   html {
     @apply font-sans;
     height: 100%;
+    scroll-behavior: smooth;
+    /* Allow native OS elastic/rubber-band bounce at scroll boundaries */
+    overscroll-behavior: auto;
+    --scrollbar-thumb: rgba(0, 0, 0, 0.3);
+  }
+  html.dark {
+    --scrollbar-thumb: rgba(255, 255, 255, 0.18);
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-playfair), Georgia, serif;

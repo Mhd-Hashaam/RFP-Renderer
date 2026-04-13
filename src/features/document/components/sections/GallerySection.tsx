@@ -32,7 +32,7 @@ export function GallerySection({
     >
       {/* Heading full-width */}
       {section.heading && (
-        <h2 className="mb-4 font-heading text-2xl font-semibold tracking-tight text-zinc-100">
+        <h2 className="mb-4 font-heading text-2xl font-semibold tracking-tight text-foreground">
           <EditableText
             value={section.heading.content}
             onCommit={(v) => onUpdateHeading(section.heading!.id, v)}
@@ -67,22 +67,20 @@ export function GallerySection({
                 images.length === 3 && idx === 0 && !isMobile ? "col-span-2" : "",
               )}
             >
-              <div
-                className="relative w-full overflow-hidden rounded-lg border border-white/10 shadow-md"
-                style={{ aspectRatio: "16/9" }}
-              >
+              <div className="relative w-full overflow-hidden rounded-lg border border-white/10 shadow-md">
                 <Image
                   src={img.src}
                   alt={img.alt}
-                  fill
-                  className="object-cover transition-transform duration-500 hover:scale-[1.02]"
+                  width={800}
+                  height={600}
+                  className="h-auto w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
                   sizes="(max-width: 768px) 100vw, 50vw"
                   unoptimized
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
               </div>
               {img.caption && (
-                <figcaption className="text-zinc-500 text-xs italic px-0.5">
+                <figcaption className="text-muted-foreground text-xs italic px-0.5">
                   {img.caption}
                 </figcaption>
               )}

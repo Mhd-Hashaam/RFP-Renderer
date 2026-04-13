@@ -29,10 +29,10 @@ export function Page({
   return (
     <article
       data-page-card
-      className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl transition-shadow duration-300 hover:shadow-[0_16px_48px_rgba(0,0,0,0.6)]"
+      className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xl transition-shadow duration-300 hover:shadow-[0_16px_48px_rgba(0,0,0,0.3)]"
     >
       {/* Page content */}
-      <div className="p-8 md:p-10">
+      <div className="p-10 md:p-14">
         {sections.map((section) => (
           <SectionRenderer
             key={section.id}
@@ -46,8 +46,8 @@ export function Page({
       </div>
 
       {/* Page footer */}
-      <div className="flex items-center justify-center border-t border-zinc-800 px-8 py-3">
-        <span className="text-[10px] font-medium uppercase tracking-widest text-zinc-600">
+      <div className="flex items-center justify-center border-t border-border px-8 py-3">
+        <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground/60">
           — Page {pageIndex + 1} of {totalPages} —
         </span>
       </div>

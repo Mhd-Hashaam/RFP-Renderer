@@ -31,6 +31,10 @@ export function estimateBlockHeightPx(block: Block): number {
         )
       );
 
+    case "meta":
+      // Estimate 2-col grid: ~28px per row, 2 items per row
+      return 16 + Math.ceil(block.items.length / 2) * 28;
+
     default: {
       const _never: never = block;
       return _never;

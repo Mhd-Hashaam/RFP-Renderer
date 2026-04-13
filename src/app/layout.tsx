@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { LenisProvider } from "@/components/providers/LenisProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -41,7 +42,9 @@ export default function RootLayout({
         />
       </head>
       <body className="h-full overflow-hidden" suppressHydrationWarning>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <LenisProvider>{children}</LenisProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -6,6 +6,18 @@
     "content": "This proposal outlines the design and development of a mid-rise commercial building inspired by traditional Gothic architecture. The project aims to deliver a visually iconic structure that merges historical aesthetics with modern engineering, creating a premium destination for offices, retail, and public engagement."
   },
   {
+    "id": "2-meta",
+    "type": "meta",
+    "items": [
+      { "label": "Client", "value": "Commercial Development Group" },
+      { "label": "Location", "value": "Central Business District" },
+      { "label": "Building Type", "value": "Mixed-use (Retail + Office)" },
+      { "label": "Height", "value": "12 Floors (Mid-rise)" },
+      { "label": "Style", "value": "Neo-Gothic Revival" },
+      { "label": "Status", "value": "Proposal Stage" }
+    ]
+  },
+  {
     "id": "3",
     "type": "image",
     "src": "/Assets/Main.webp",
@@ -34,16 +46,9 @@
   {
     "id": "7",
     "type": "image",
-    "src": "/Assets/Interior and ceiling.webp",
+    "src": "/Assets/Interior.webp",
     "alt": "Interior hall",
     "caption": "Fig 2. Grand interior hall with vaulted ceiling"
-  },
-  {
-    "id": "8",
-    "type": "image",
-    "src": "/Assets/Sketch.webp",
-    "alt": "Concept sketch",
-    "caption": "Fig 3. Early-stage conceptual visualization"
   },
 
   { "id": "9", "type": "heading", "level": 2, "content": "Project Scope" },
@@ -75,9 +80,9 @@
   {
     "id": "14",
     "type": "image",
-    "src": "/Assets/Sketch 2.webp",
+    "src": "/Assets/Zoning.webp",
     "alt": "Floor plan sketch",
-    "caption": "Fig 4. Zoning and spatial distribution"
+    "caption": "Fig 3. Zoning and spatial distribution"
   },
   {
     "id": "15",
@@ -103,7 +108,7 @@
     "type": "image",
     "src": "/Assets/Facade Details.webp",
     "alt": "Stone detail",
-    "caption": "Fig 5. Ornamental stone detailing"
+    "caption": "Fig 4. Ornamental stone detailing"
   },
   {
     "id": "19",
@@ -129,7 +134,7 @@
     "type": "image",
     "src": "/Assets/Shops.webp",
     "alt": "Office interior",
-    "caption": "Fig 6. Office space integrated within classical architecture"
+    "caption": "Fig 5. Office space integrated within classical architecture"
   },
 
   { "id": "23", "type": "heading", "level": 2, "content": "Sustainability & Environment" },
@@ -141,9 +146,9 @@
   {
     "id": "25",
     "type": "image",
-    "src": "/Assets/Green.webp",
+    "src": "/Assets/Facade Detail and Greenery.webp",
     "alt": "Environment",
-    "caption": "Fig 7. Building integrated with surrounding environment"
+    "caption": "Fig 6. Building integrated with surrounding environment"
   },
   {
     "id": "26",
@@ -169,7 +174,7 @@
     "type": "image",
     "src": "/Assets/Night View1.webp",
     "alt": "Night view",
-    "caption": "Fig 8. Night illumination highlights vertical structure"
+    "caption": "Fig 7. Night illumination highlights vertical structure"
   },
 
   { "id": "30", "type": "heading", "level": 2, "content": "Construction Phases" },
@@ -202,6 +207,6 @@
     "type": "image",
     "src": "/Assets/Facade and Night View.webp",
     "alt": "Final exterior",
-    "caption": "Fig 9. Final envisioned structure"
+    "caption": "Fig 8. Final envisioned structure"
   }
 ]

@@ -40,6 +40,8 @@ export function analyzeSection(
       case "heading":
       case "group":
         break;
+      case "meta":
+        break;
       default: {
         const _never: never = block;
         void _never;
@@ -70,6 +72,8 @@ function measureBlockTextLength(block: Block): number {
       return block.items.reduce((sum, item) => sum + item.length, 0);
     case "image":
       return (block.caption?.length ?? 0) + block.alt.length;
+    case "meta":
+      return block.items.reduce((sum, item) => sum + item.label.length + item.value.length, 0);
     case "group":
       return block.children.reduce(
         (sum, child) => sum + measureBlockTextLength(child),
